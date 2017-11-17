@@ -4,6 +4,9 @@
 import pyglet
 from pyglet.sprite import Sprite
 
+# TODO: copied 'graphics.py' to this folder in order to load it.
+from graphics import Grid
+
 # constants
 BLACK = True
 WHITE = False
@@ -14,7 +17,7 @@ class Window(pyglet.window.Window):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
         
         # TODO: remove me later
-        n = 2
+        n = 19
 		
         # Gamplay information passed by the controller
         self.data = {'size' : n, #n comes as keyword-argument to __init__()
@@ -103,12 +106,28 @@ class Window(pyglet.window.Window):
         # Creating a batch [in init_display()]
         self.batch = pyglet.graphics.Batch()
         
+        # Ordered groups are like different layers inside the batch. The lowest
+        # number will be drawn first.
+        # Inside a group the order is arbitrary (gives Pyglet the opportunity
+        # to optimize).
+        self.grp_back = pyglet.graphics.OrderedGroup(0)
+        self.grp_grid = pyglet.graphics.OrderedGroup(1)
+        self.grp_label = pyglet.graphics.OrderedGroup(2)
+        self.grp_stones = pyglet.graphics.OrderedGroup(3)
+        self.grp_terrritory = pyglet.graphics.OrderedGroup(4)
+        
         # Display background image
-        #self.background = Sprite(self.image_background, batch=self.batch)
+        #self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
         
         # Alternative approach to display image
         self.graphical_obj = []
-        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch))
+        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
+        
+        # Display grid
+        self.grid = Grid(x=self.width/2, y=self.height/2,
+                         width=self.width, height=self.height,
+                         batch=self.batch, group=self.grp_grid,
+                         n=self.data['size'])
 
 if __name__ == '__main__':
     window = Window()
