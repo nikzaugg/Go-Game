@@ -3,10 +3,30 @@
 
 import pyglet
 
+# constants
+BLACK = True
+WHITE = False
+
 class Window(pyglet.window.Window):
     
     def __init__(self):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
+        
+        # TODO: remove me later
+        n = 2
+		
+        # Gamplay information passed by the controller
+        self.data = {'size' : n, #n comes as keyword-argument to __init__()
+			'stones' : [[None for x in range(n)] for y in range(n)],
+			'territory': [[None for x in range(n)] for y in range(n)],
+			'color' : None,
+			'game_over': False,
+			'score' : [0, 0]}
+        
+        # Set default background color
+        pyglet.gl.glClearColor(0.5,0.5,0.5,1)
+        
+        self.init_display()
 
     def on_draw(self):
         """Draw the interface.
@@ -14,7 +34,11 @@ class Window(pyglet.window.Window):
         This function should only draw the graphics without
         doing any computations.
         """
-        pass
+        # Clear out old graphics
+        self.clear()
+        
+        # Drawing the batch (which does not contain any graphics yet) [in on_draw()]
+        self.batch.draw()
 
     def on_mouse_press(self, mousex, mousey, button, modifiers):
         """Function called on any mouse button press.
@@ -56,6 +80,21 @@ class Window(pyglet.window.Window):
         >>> help(pyglet.window.key)
         """
         pass
+    
+    def update(self, *args):
+        """This function does all the calculations when the data gets updated.
+        Side note: Has to be called manually.
+            For other games that require permanent simulations you would add
+            the following line of code at the end of __init__():
+            pyglet.clock.schedule_interval(self.update, 1/30)
+        """
+        pass
+    
+    def init_display(self):
+        """Gather all graphical elements together and draw them simutaneously.
+        """
+        # Creating a batch [in init_display()]
+        self.batch = pyglet.graphics.Batch()
 
 if __name__ == '__main__':
     window = Window()
