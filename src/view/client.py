@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+from pyglet.sprite import Sprite
 
 # constants
 BLACK = True
@@ -25,6 +26,12 @@ class Window(pyglet.window.Window):
         
         # Set default background color
         pyglet.gl.glClearColor(0.5,0.5,0.5,1)
+        
+        # TODO: change later on (image should be called form resources, manually
+        # copied the image to this folder to run it within the command line
+        # with 'python src/view/client.py'.)
+        # Load background image
+        self.image_background = pyglet.resource.image('Background.png')
         
         self.init_display()
 
@@ -95,6 +102,13 @@ class Window(pyglet.window.Window):
         """
         # Creating a batch [in init_display()]
         self.batch = pyglet.graphics.Batch()
+        
+        # Display background image
+        #self.background = Sprite(self.image_background, batch=self.batch)
+        
+        # Alternative approach to display image
+        self.graphical_obj = []
+        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch))
 
 if __name__ == '__main__':
     window = Window()
