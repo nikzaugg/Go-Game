@@ -56,10 +56,10 @@ class Model(object):
 
         for j in range(0, self.size):
             for i in range(0, self.size):
-                if board[j][i] == None:
+                if self.board[j][i] is None:
                     colors[j][i] = None
                 else:
-                    colors[j][i] = board[j][i].color
+                    colors[j][i] = self.board[j][i].color
                             
         return colors
 
@@ -140,7 +140,7 @@ class Model(object):
         if self.board[y][x] != None:
             return False
 
-        new_stone = Group(stones=[(x,y)], color=self.turn)
+        new_group = Group(stones=[(x,y)], color=self.turn)
         groups_to_remove = []
         groups_to_kill = []
 
