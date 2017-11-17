@@ -52,19 +52,15 @@ class Model(object):
             self.blocked_field = None
 
     def _stones(self):
-        colors = []
+        colors = [[None for i in range(self.size)] for j in range(self.size)]
 
         for j in range(0, self.size):
-            row = []
-
             for i in range(0, self.size):
                 if board[j][i] == None:
-                    row.append(None)
+                    colors[j][i] = None
                 else:
-                    row.append(board[j][i].color)
-            
-            colors.append(row)
-        
+                    colors[j][i] = board[j][i].color
+                            
         return colors
 
     def _add(self, grp):
