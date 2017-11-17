@@ -2,11 +2,41 @@
 # -*- coding: utf-8 -*-
 
 import pyglet
+from pyglet.sprite import Sprite
+
+# TODO: copied 'graphics.py' to this folder in order to load it.
+from graphics import Grid
+
+# constants
+BLACK = True
+WHITE = False
 
 class Window(pyglet.window.Window):
     
     def __init__(self):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
+        
+        # TODO: remove me later
+        n = 19
+		
+        # Gamplay information passed by the controller
+        self.data = {'size' : n, #n comes as keyword-argument to __init__()
+			'stones' : [[None for x in range(n)] for y in range(n)],
+			'territory': [[None for x in range(n)] for y in range(n)],
+			'color' : None,
+			'game_over': False,
+			'score' : [0, 0]}
+        
+        # Set default background color
+        pyglet.gl.glClearColor(0.5,0.5,0.5,1)
+        
+        # TODO: change later on (image should be called form resources, manually
+        # copied the image to this folder to run it within the command line
+        # with 'python src/view/client.py'.)
+        # Load background image
+        self.image_background = pyglet.resource.image('Background.png')
+        
+        self.init_display()
 
     def on_draw(self):
         """Draw the interface.
@@ -14,7 +44,11 @@ class Window(pyglet.window.Window):
         This function should only draw the graphics without
         doing any computations.
         """
-        pass
+        # Clear out old graphics
+        self.clear()
+        
+        # Drawing the batch (which does not contain any graphics yet) [in on_draw()]
+        self.batch.draw()
 
     def on_mouse_press(self, mousex, mousey, button, modifiers):
         """Function called on any mouse button press.
@@ -56,6 +90,44 @@ class Window(pyglet.window.Window):
         >>> help(pyglet.window.key)
         """
         pass
+    
+    def update(self, *args):
+        """This function does all the calculations when the data gets updated.
+        Side note: Has to be called manually.
+            For other games that require permanent simulations you would add
+            the following line of code at the end of __init__():
+            pyglet.clock.schedule_interval(self.update, 1/30)
+        """
+        pass
+    
+    def init_display(self):
+        """Gather all graphical elements together and draw them simutaneously.
+        """
+        # Creating a batch [in init_display()]
+        self.batch = pyglet.graphics.Batch()
+        
+        # Ordered groups are like different layers inside the batch. The lowest
+        # number will be drawn first.
+        # Inside a group the order is arbitrary (gives Pyglet the opportunity
+        # to optimize).
+        self.grp_back = pyglet.graphics.OrderedGroup(0)
+        self.grp_grid = pyglet.graphics.OrderedGroup(1)
+        self.grp_label = pyglet.graphics.OrderedGroup(2)
+        self.grp_stones = pyglet.graphics.OrderedGroup(3)
+        self.grp_terrritory = pyglet.graphics.OrderedGroup(4)
+        
+        # Display background image
+        #self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
+        
+        # Alternative approach to display image
+        self.graphical_obj = []
+        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
+        
+        # Display grid
+        self.grid = Grid(x=self.width/2, y=self.height/2,
+                         width=self.width, height=self.height,
+                         batch=self.batch, group=self.grp_grid,
+                         n=self.data['size'])
 
 if __name__ == '__main__':
     window = Window()
