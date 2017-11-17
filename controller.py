@@ -5,8 +5,10 @@ import pyglet
 
 class Controller(object):
     def __init__(self):
+        print("hasodijasiodioasd")
+        exit()
         self.window = DummyWindow()
-        self.model = DummyModel()
+        self.model = DummyModel(19)
         self.data = self.model.get_data()
         self.window.receive_data(self.data)
         pyglet.app.run()
@@ -36,20 +38,19 @@ class Controller(object):
         self._update_window()
         
 
-######### WINDOW VIEW ###########
+######### DUMMY WINDOW VIEW ###########
 class DummyWindow(object):
     def __init__(self):
-        self.info = ''
+        self.info = self.Label()
 
     def receive_data(self, data):
         pass
 
     class Label():
-        self.text = '' 
+        def __init__(self):
+            self.text = ''
 
-    self.info = Label()
-
-######### MODEL ###########
+######### DUMMY MODEL ###########
 class DummyModel(object):
     def __init__(self,n=19):
         self.data = {   'size' : n,
