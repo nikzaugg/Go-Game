@@ -38,14 +38,16 @@ class Controller(object):
 
 ######### WINDOW VIEW ###########
 class DummyWindow(object):
+    def __init__(self):
+        self.info = ''
+
     def receive_data(self, data):
         pass
 
     class Label():
-        self.text = ''
-        
-    self.info = Label()
+        self.text = '' 
 
+    self.info = Label()
 
 ######### MODEL ###########
 class DummyModel(object):
@@ -56,16 +58,22 @@ class DummyModel(object):
                         'game_over': False,
                         'score' : (0,0),
                         'color' : True} 
+
     def find_territory(self):
         pass
+
     def get_data(self):
         return self.data
+
     def mark_territory(self,x, y):
         pass
+
     def passing(self):
         return True
+
     def place_stone(self, x, y):
         return False
+
     def play(self, pos):
         return True
 
