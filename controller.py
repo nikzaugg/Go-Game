@@ -1,26 +1,31 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Author: Nik Zaugg
+
+# Controller part of the MVC architecture for an implementation of the Go game
+
 import pyglet
+from game_model import Model
+from client import Window
 
 class Controller(object):
     def __init__(self):
-        print("hasodijasiodioasd")
         exit()
         self.window = DummyWindow()
-        self.model = DummyModel(19)
+        self.model = Model(19)
         self.data = self.model.get_data()
         self.window.receive_data(self.data)
         pyglet.app.run()
     
     def _update_window(self):
-        self.window.receive_data(self.model.data)
+        self.window.receive_data(self.model.get_data())
         
     def play(self, pos):
-        if(self.model.play(pos)):
-            self.window.info.text = 'TRUE'
+        if(self.model.place_stone(pos)):
+            self.window.info.text = "It's your turn!"
         else:
-            self.window.info.text = 'FALSE'
+            self.window.info.text = 'Invalid move!'
 
         self._update_window()
             
@@ -34,11 +39,13 @@ class Controller(object):
         self._update_window()
     
     def mark_territory(self, pos):
-        self.model.mark_territory(pos.x, pos.y)
+        # TODO: remove comment once model has implemented Additional Task 2: Mark territory
+        # self.model.mark_territory(pos.x, pos.y)
         self._update_window()
         
 
 ######### DUMMY WINDOW VIEW ###########
+# TODO: remove once view is ready
 class DummyWindow(object):
     def __init__(self):
         self.info = self.Label()
@@ -49,9 +56,13 @@ class DummyWindow(object):
     class Label():
         def __init__(self):
             self.text = ''
+########################################
 
-######### DUMMY MODEL ###########
-class DummyModel(object):
+if __name__ == '__main__':
+    c = Controller()
+
+
+''' class DummyModel(object):
     def __init__(self,n=19):
         self.data = {   'size' : n,
                         'stones' : [[None for i in range(n)]for j in range(n)],
@@ -76,9 +87,4 @@ class DummyModel(object):
         return False
 
     def play(self, pos):
-        return True
-
-#########################
-
-if __name__ == '__main__':
-    c = Controller()
+        return True '''
