@@ -87,7 +87,7 @@ class Window(pyglet.window.Window):
         if(self.data['game_over']):
             if (mousex, mousey) in self.button_newgame:
                 self.controller.new_game()
-            
+                
             if button == pyglet.window.mouse.LEFT:
                 # Mark territory if the game is over
                 pos = self.grid.get_indices(mousex, mousey)
@@ -136,7 +136,7 @@ class Window(pyglet.window.Window):
             pyglet.clock.schedule_interval(self.update, 1/30)
         """
         # Game Information Updates
-        # Scores of each player 
+        # Scores of each player
         self.score_black.text = str(self.data['score'][0])
         self.score_white.text = str(self.data['score'][1])
             
@@ -186,17 +186,17 @@ class Window(pyglet.window.Window):
         # Controler-Info Panel
         # The Text of this label is directly changed inside the controller
         self.info = Label(x=10, y=10, text="Welcome!", color=label_text_color,
-            font_size=label_font_size, batch=self.batch, group=self.grp_label)
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
         
         # Score-Label
         Label(x=10, y=label_y, text='Score:', color=label_text_color,
-            font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
+                          font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
 
         # Scores for BLACK and WHITE
         self.score_black = Label(x=100, y=label_y, text='0', color=label_text_color,
-            font_size=label_font_size, batch=self.batch, group=self.grp_label)
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
         self.score_white = Label(x=170, y=label_y, text='0', color=label_text_color,
-            font_size=label_font_size, batch=self.batch, group=self.grp_label)
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
 
         # Stones for BLACK and WHITE scores
         self.label_stones = []
@@ -204,25 +204,25 @@ class Window(pyglet.window.Window):
         for stone in [
             {'image': self.image_black_stone, 'position': 80},
             {'image': self.image_white_stone, 'position': 150}]:
-            s = Sprite(stone['image'],
-                                    batch=self.batch,
-                                    group=self.grp_label,
-                                    x=stone['position'],
-                                    y=label_y + self.image_white_stone.height*stone_scale/4)
-            s.scale = stone_scale
-            self.label_stones.append(s)
+            stone = Sprite(stone['image'],
+                           batch=self.batch,
+                           group=self.grp_label,
+                           x=stone['position'],
+                           y=label_y + self.image_white_stone.height*stone_scale/4)
+            stone.scale = stone_scale
+            self.label_stones.append(stone)
 
         # Player Color Label
         self.player_color = Label(x=550, y=label_y, text="Your color: ", color=(0, 0, 0, 255),
             font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
         stone_color = self.image_black_stone if self.data['color'] == BLACK else self.image_white_stone
-        s = Sprite(stone_color,
-                                    batch=self.batch,
-                                    group=self.grp_label,
-                                    x=660,
-                                    y=label_y + self.image_white_stone.height*stone_scale/4)
-        s.scale = stone_scale
-        self.label_stones.append(s)
+        stone = Sprite(stone_color,
+                       batch=self.batch,
+                       group=self.grp_label,
+                       x=660,
+                       y=label_y + self.image_white_stone.height*stone_scale/4)
+        stone.scale = stone_scale
+        self.label_stones.append(stone)
 
         # Game Buttons
         # Button that can be pressed to pass on current round
@@ -291,9 +291,9 @@ class Window(pyglet.window.Window):
                                r=rad,
                                batch=self.batch_stones,
                                group=self.grp_territory)
-    
-    # Receive data from the controller and update view
+
     def receive_data(self, data):
+        """Receive data from the controller and update view"""
         self.data.update(data)
         self.update()
          
