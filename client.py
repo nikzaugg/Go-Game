@@ -83,21 +83,31 @@ class Window(pyglet.window.Window):
         >>> import pyglet
         >>> help(pyglet.window.mouse)
         """
-        # Check if pass-button was pressed
-        if (mousex, mousey) in self.button_pass:
-            self.controller.passing()
-        
         # Check for clicks on New Game Button only when game is Over
         if(self.data['game_over']):
             if (mousex, mousey) in self.button_newgame:
                 self.controller.new_game()
+            
+            if button == pyglet.window.mouse.LEFT:
+                # Mark territory if the game is over
+                pos = self.grid.get_indices(mousex, mousey)
+                if pos != None:
+                    self.controller.mark_territory()
 
+        # Handle cliucks during game
+        
+        # Check if pass-button was pressed
+        if (mousex, mousey) in self.button_pass:
+            self.controller.passing()
+
+        # Grid position clicked
         if button == pyglet.window.mouse.LEFT:
-            # Print mouse coordinates
-            #print('Left-click at position x={}, y={}'.format(mousex, mousey))
+            # Place a stone at clicked position
             pos = self.grid.get_indices(mousex, mousey)
             if pos != None:
+                # TODO: remove print statement once everything is integrated
                 print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
+                self.controller.play(pos)
 
     def on_key_press(self, symbol, modifiers):
         """Function that gets called on any key press (keyboard).

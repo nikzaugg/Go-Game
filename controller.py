@@ -23,8 +23,8 @@ class Controller(object):
         self.window.receive_data(self.model.get_data())
         
     def play(self, pos):
-        if(self.model.place_stone(pos)):
-            self.window.info.text = "It's your turn!"
+        if(self.model.place_stone(pos[0], pos[1])):
+            self.window.info.text = "Nice Move!"
         else:
             self.window.info.text = 'Invalid move!'
 

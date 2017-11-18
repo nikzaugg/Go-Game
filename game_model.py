@@ -131,7 +131,7 @@ class Model(object):
 
         return data
 
-    def place_stone(x,y):
+    def place_stone(self, x,y):
         # Check if the game is finished
         if self.game_over:
             return False
