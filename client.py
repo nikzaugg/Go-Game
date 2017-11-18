@@ -82,7 +82,8 @@ class Window(pyglet.window.Window):
             # Print mouse coordinates
             #print('Left-click at position x={}, y={}'.format(mousex, mousey))
             pos = self.grid.get_indices(mousex, mousey)
-            print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
+            if pos != None:
+                print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
 
     def on_key_press(self, symbol, modifiers):
         """Function that gets called on any key press (keyboard).
