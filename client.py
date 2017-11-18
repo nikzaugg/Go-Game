@@ -137,8 +137,8 @@ class Window(pyglet.window.Window):
         """
         # Game Information Updates
         # Scores of each player
-        self.score_black.text = str(self.data['score'][0])
-        self.score_white.text = str(self.data['score'][1])
+        self.score_black.text = str(self.data['score'][1])
+        self.score_white.text = str(self.data['score'][0])
             
         self.batch_stones = pyglet.graphics.Batch()
         self.stone_sprites = []
@@ -193,9 +193,9 @@ class Window(pyglet.window.Window):
                           font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
 
         # Scores for BLACK and WHITE
-        self.score_black = Label(x=100, y=label_y, text='0', color=label_text_color,
+        self.score_black = Label(x=100, y=label_y, text=str(self.data['score'][1]), color=label_text_color,
                           font_size=label_font_size, batch=self.batch, group=self.grp_label)
-        self.score_white = Label(x=170, y=label_y, text='0', color=label_text_color,
+        self.score_white = Label(x=170, y=label_y, text=str(self.data['score'][0]), color=label_text_color,
                           font_size=label_font_size, batch=self.batch, group=self.grp_label)
 
         # Stones for BLACK and WHITE scores
