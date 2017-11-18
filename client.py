@@ -129,6 +129,9 @@ class Window(pyglet.window.Window):
                          batch=self.batch, group=self.grp_grid,
                          n=self.data['size'])
 
+    def receive_data(self, data):
+        self.data.update(data)
+        self.update()
 if __name__ == '__main__':
     window = Window()
     pyglet.app.run()
