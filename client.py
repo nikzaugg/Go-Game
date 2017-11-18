@@ -33,7 +33,7 @@ class Window(pyglet.window.Window):
                         'territory': [[None for x in range(n)] for y in range(n)],
                         'color' : None,
                         'game_over': False,
-                        'score' : [0, 0]
+                        'score' : [0, 20]
                         }
         
         # Set default background color
@@ -127,6 +127,11 @@ class Window(pyglet.window.Window):
         """
         if self.data['size'] == self.grid.size:
             self.init_display()
+        
+        # Game Information Updates
+        # Scores of each player 
+        self.score_black.text = str(self.data['score'][0])
+        self.score_white.text = str(self.data['score'][1])
             
         self.batch_stones = pyglet.graphics.Batch()
         self.stone_sprites = []
@@ -165,39 +170,32 @@ class Window(pyglet.window.Window):
                          n=self.data['size'])
         
         # Game Information Display
-        # Information from the Controller
-        self.info = 'Welcome!'
         
-        # Scores of each player 
-        self.score_black = str(self.data['score'][0])
-        self.score_white = str(self.data['score'][1])
-
-        # Color of the Player
-        self.player_color = str(self.data['color'])
+        # Controler-Info Panel
+        # The Text of this label is directly changed inside the controller
+        self.info = Label(x=10, y=10, text="Welcome!", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
         
         # Score-Label
         Label(x=10, y=680, text='Score:', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-        
+
+        # Scores in numbers BLACK 
+        self.score_black = Label(x=160, y=680, text="", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
         # Scores BLACK stone 
         # TODO: add png image for the stone if there is time
         Label(x=80, y=680, text='(BLACK)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
 
-        # Scores in numbers BLACK 
-        Label(x=160, y=680, text=self.score_black, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        # Scores in numbers WHITE  
+        self.score_white = Label(x=300, y=680, text="", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
 
         # Scores WHITE stone 
         # TODO: add png image for the stone if there is time
         Label(x=220, y=680, text='(WHITE)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
 
-        # Scores in numbers WHITE  
-        Label(x=300, y=680, text=self.score_white, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-
         # Player Color Label
-        Label(x=500, y=680, text=self.player_color, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-       
-        # Controler-Info Panel
-        Label(x=10, y=10, text=self.info, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-        
+        # TODO: add png image for the stone
+        self.player_color = Label(x=500, y=680, text="Your color: (BLACK)", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
         # Game Buttons
         # Button that can be pressed to pass on current round
         self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)  
