@@ -4,6 +4,7 @@
 import pyglet
 from pyglet.sprite import Sprite
 from graphics import Grid
+import controller
 
 # constants
 BLACK = True
@@ -14,6 +15,8 @@ class Window(pyglet.window.Window):
     def __init__(self):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
         
+        self.controller = controller.Controller()
+
         # TODO: remove me later
         n = 19
 		
@@ -132,6 +135,7 @@ class Window(pyglet.window.Window):
     def receive_data(self, data):
         self.data.update(data)
         self.update()
+
 if __name__ == '__main__':
     window = Window()
     pyglet.app.run()
