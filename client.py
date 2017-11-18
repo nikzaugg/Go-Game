@@ -185,10 +185,6 @@ class Window(pyglet.window.Window):
         
         # Game Buttons
         pass_button = Button(pos=(600,40), text='Button', batch=self.batch)        
-
-    def receive_data(self, data):
-        self.data.update(data)
-        self.update()
         
         # Center both black and white stones
         def center_image(image):
@@ -258,7 +254,12 @@ class Window(pyglet.window.Window):
                                r=rad,
                                batch=self.batch_stones,
                                group=self.grp_territory)
-            
+
+    # Receive data from the controller and update view
+    def receive_data(self, data):
+        self.data.update(data)
+        self.update()
+         
 # main program
 # open the window
 if __name__ == '__main__':
