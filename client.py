@@ -205,10 +205,10 @@ class Window(pyglet.window.Window):
 
         # Game Buttons
         # Button that can be pressed to pass on current round
-        self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)  
+        self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)
 
         # New-Game Button
-        self.button_newgame = Button(pos=(480,40), text='New Game')   
+        self.button_newgame = Button(pos=(480,40), text='New Game')
 
         # Center both black and white stones
         def center_image(image):
@@ -222,10 +222,17 @@ class Window(pyglet.window.Window):
         # Display the stones on the regular batch
         self.batch_stones = self.batch
         self.stone_sprites = []
-        
+
+        # Scale stone images
+        scaling = self.grid.field_width / self.image_black_stone.width
+
+        # Limit max size of stones
+        max_scaling = 0.75
+        if scaling > max_scaling:
+            scaling = max_scaling
+
         # Iterate trough all data stones and place the corresponding black or
         # white stone on the grid
-        scaling = self.grid.field_width / self.image_black_stone.width
         for i in range(0, self.data['size']):
             for j in range(0, self.data['size']):
                 if self.data['stones'][j][i] != None:
@@ -268,6 +275,7 @@ class Window(pyglet.window.Window):
                                r=rad,
                                batch=self.batch_stones,
                                group=self.grp_territory)
+    
     # Receive data from the controller and update view
     def receive_data(self, data):
         self.data.update(data)
