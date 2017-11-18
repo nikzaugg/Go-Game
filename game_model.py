@@ -137,8 +137,8 @@ class Model(object):
         return sum([1 for u, v in grp.border if self.board[v][u] is None])     
 
     def add_scores(self):
-        return [sum(self.score[0]) + sum(self.captured[0]), 
-                sum(self.score[1]) + sum(self.captured[1])]
+        return [self.score[0] + self.captured[0], 
+                self.score[1] + self.captured[1]]
 
     def get_data(self):
         data = {

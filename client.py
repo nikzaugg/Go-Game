@@ -201,7 +201,7 @@ class Window(pyglet.window.Window):
 
         # Player Color Label
         # TODO: add png image for the stone
-        self.player_color = Label(x=500, y=680, text="Your color: (BLACK)", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        self.player_color = Label(x=500, y=680, text="Your color: "+ str(self.data['color']), color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
 
         # Game Buttons
         # Button that can be pressed to pass on current round
