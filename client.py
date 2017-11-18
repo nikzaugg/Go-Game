@@ -14,11 +14,14 @@ import controller
 BLACK = True
 WHITE = False
 
-BLACK_TERRITORY = (255,255,255,255)
-WHITE_TERRITORY = (0,0,0,255)
+BLACK_TERRITORY = (255, 255, 255, 255)
+WHITE_TERRITORY = (0, 0, 0, 255)
+
+MAX_STONE_SCALING = 0.6     # 1 is original size
+MAX_GRID_SIZE = 0.7         # 1 is full size of window
 
 class Window(pyglet.window.Window):
-    
+
     def __init__(self, controller, n):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
         
@@ -167,41 +170,59 @@ class Window(pyglet.window.Window):
         #self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
         
         # Display grid
-        scale_factor = 0.75
         self.grid = Grid(x=self.width/2,
                          y=self.height/2,
-                         width=self.width*scale_factor,
-                         height=self.height*scale_factor,
+                         width=self.width*MAX_GRID_SIZE,
+                         height=self.height*MAX_GRID_SIZE,
                          batch=self.batch,
                          group=self.grp_grid,
                          n=self.data['size'])
         
         # Game Information Display
+        label_y = 670                 # y position of scores and next turn labels
+        label_font_size = 12
+        label_text_color = (0, 0, 0, 255)
         
         # Controler-Info Panel
         # The Text of this label is directly changed inside the controller
-        self.info = Label(x=10, y=10, text="Welcome!", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        self.info = Label(x=10, y=10, text="Welcome!", color=label_text_color,
+            font_size=label_font_size, batch=self.batch, group=self.grp_label)
         
         # Score-Label
-        Label(x=10, y=680, text='Score:', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        Label(x=10, y=label_y, text='Score:', color=label_text_color,
+            font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
 
-        # Scores in numbers BLACK 
-        self.score_black = Label(x=160, y=680, text="", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        # Scores for BLACK and WHITE
+        self.score_black = Label(x=100, y=label_y, text='0', color=label_text_color,
+            font_size=label_font_size, batch=self.batch, group=self.grp_label)
+        self.score_white = Label(x=170, y=label_y, text='0', color=label_text_color,
+            font_size=label_font_size, batch=self.batch, group=self.grp_label)
 
-        # Scores BLACK stone 
-        # TODO: add png image for the stone if there is time
-        Label(x=80, y=680, text='(BLACK)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-
-        # Scores in numbers WHITE  
-        self.score_white = Label(x=300, y=680, text="", color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-
-        # Scores WHITE stone 
-        # TODO: add png image for the stone if there is time
-        Label(x=220, y=680, text='(WHITE)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        # Stones for BLACK and WHITE scores
+        self.label_stones = []
+        stone_scale = 0.2
+        for stone in [
+            {'image': self.image_black_stone, 'position': 80},
+            {'image': self.image_white_stone, 'position': 150}]:
+            s = Sprite(stone['image'],
+                                    batch=self.batch,
+                                    group=self.grp_label,
+                                    x=stone['position'],
+                                    y=label_y + self.image_white_stone.height*stone_scale/4)
+            s.scale = stone_scale
+            self.label_stones.append(s)
 
         # Player Color Label
-        # TODO: add png image for the stone
-        self.player_color = Label(x=500, y=680, text="Your color: "+ str(self.data['color']), color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        self.player_color = Label(x=550, y=label_y, text="Your color: ", color=(0, 0, 0, 255),
+            font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
+        stone_color = self.image_black_stone if self.data['color'] == BLACK else self.image_white_stone
+        s = Sprite(stone_color,
+                                    batch=self.batch,
+                                    group=self.grp_label,
+                                    x=660,
+                                    y=label_y + self.image_white_stone.height*stone_scale/4)
+        s.scale = stone_scale
+        self.label_stones.append(s)
 
         # Game Buttons
         # Button that can be pressed to pass on current round
@@ -209,7 +230,7 @@ class Window(pyglet.window.Window):
 
         # New-Game Button
         self.button_newgame = Button(pos=(480,40), text='New Game')
-
+        
         # Center both black and white stones
         def center_image(image):
             """Sets an image's anchor point to its center"""
@@ -227,9 +248,8 @@ class Window(pyglet.window.Window):
         scaling = self.grid.field_width / self.image_black_stone.width
 
         # Limit max size of stones
-        max_scaling = 0.75
-        if scaling > max_scaling:
-            scaling = max_scaling
+        if scaling > MAX_STONE_SCALING:
+            scaling = MAX_STONE_SCALING
 
         # Iterate trough all data stones and place the corresponding black or
         # white stone on the grid
@@ -237,21 +257,17 @@ class Window(pyglet.window.Window):
             for j in range(0, self.data['size']):
                 if self.data['stones'][j][i] != None:
                     x_coord, y_coord = self.grid.get_coords(i, j)
-                    if self.data['stones'][j][i] == BLACK:
-                        _s = Sprite(self.image_black_stone,
+                    stone_color = self.image_black_stone if self.data['stones'][j][i] == BLACK else None
+                    stone_color = self.image_white_stone if self.data['stones'][j][i] == WHITE else stone_color
+
+                    if stone_color:
+                        _s = Sprite(stone_color,
                                     batch=self.batch_stones,
                                     group=self.grp_stones,
                                     x=x_coord,
                                     y=y_coord)
-                    elif self.data['stones'][j][i] == WHITE:
-                        _s = Sprite(self.image_white_stone,
-                                    batch=self.batch_stones,
-                                    group=self.grp_stones,
-                                    x=x_coord,
-                                    y=y_coord)
-                        
-                    _s.scale = scaling
-                    self.stone_sprites.append(_s)
+                        _s.scale = scaling
+                        self.stone_sprites.append(_s)
         
         rad = 5
         
