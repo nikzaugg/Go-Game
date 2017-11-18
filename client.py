@@ -5,6 +5,7 @@ import pyglet
 from pyglet.sprite import Sprite
 from pyglet.text import Label
 from graphics import Grid
+from graphics import Button
 import controller
 
 # constants
@@ -133,8 +134,9 @@ class Window(pyglet.window.Window):
                          batch=self.batch, group=self.grp_grid,
                          n=self.data['size'])
 
+        ####################################################################################################################
         # Game Information Display
-
+        ####################################################################################################################
         # Information from the Controller
         self.info = 'Welcome!'
         
@@ -167,7 +169,12 @@ class Window(pyglet.window.Window):
        
         # Controler-Info Panel
         Label(x=10, y=10, text=self.info, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
-       
+        ####################################################################################################################
+
+        ####################################################################################################################
+        # Game Buttons
+        ####################################################################################################################
+        pass_button = Button(pos=(600,40), text='Button', batch=self.batch)        
 
     def receive_data(self, data):
         self.data.update(data)
