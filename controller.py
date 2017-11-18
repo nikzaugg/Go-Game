@@ -11,12 +11,13 @@ from client import Window
 
 class Controller(object):
     def __init__(self):
-        exit()
         self.window = DummyWindow()
         self.model = Model(19)
         self.data = self.model.get_data()
         self.window.receive_data(self.data)
-        pyglet.app.run()
+        
+        # TODO: Do we run the app here as well?
+        #pyglet.app.run()
     
     def _update_window(self):
         self.window.receive_data(self.model.get_data())

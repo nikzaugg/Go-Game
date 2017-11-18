@@ -3,8 +3,12 @@
 
 import pyglet
 from pyglet.sprite import Sprite
+from pyglet.text import Label
 from graphics import Grid
+from graphics import Button
 from graphics import Circle
+import controller
+
 
 # constants
 BLACK = True
@@ -18,6 +22,8 @@ class Window(pyglet.window.Window):
     def __init__(self):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
         
+        self.controller = controller.Controller()
+
         # TODO: remove me later
         n = 10
 		
@@ -142,6 +148,47 @@ class Window(pyglet.window.Window):
                          batch=self.batch,
                          group=self.grp_grid,
                          n=self.data['size'])
+        
+        # Game Information Display
+        # Information from the Controller
+        self.info = 'Welcome!'
+        
+        # Scores of each player 
+        self.score_black = str(self.data['score'][0])
+        self.score_white = str(self.data['score'][1])
+
+        # Color of the Player
+        self.player_color = str(self.data['color'])
+        
+        # Score-Label
+        Label(x=10, y=680, text='Score:', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        
+        # Scores BLACK stone 
+        # TODO: add png image for the stone if there is time
+        Label(x=80, y=680, text='(BLACK)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores in numbers BLACK 
+        Label(x=160, y=680, text=self.score_black, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores WHITE stone 
+        # TODO: add png image for the stone if there is time
+        Label(x=220, y=680, text='(WHITE)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores in numbers WHITE  
+        Label(x=300, y=680, text=self.score_white, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Player Color Label
+        Label(x=500, y=680, text=self.player_color, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+       
+        # Controler-Info Panel
+        Label(x=10, y=10, text=self.info, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        
+        # Game Buttons
+        pass_button = Button(pos=(600,40), text='Button', batch=self.batch)        
+
+    def receive_data(self, data):
+        self.data.update(data)
+        self.update()
         
         # Center both black and white stones
         def center_image(image):
