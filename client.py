@@ -95,7 +95,7 @@ class Window(pyglet.window.Window):
                 # Mark territory if the game is over
                 pos = self.grid.get_indices(mousex, mousey)
                 if pos != None:
-                    self.controller.mark_territory()
+                    self.controller.mark_territory(pos)
 
         # Handle cliucks during game
         

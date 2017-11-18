@@ -68,6 +68,7 @@ class Model(object):
         # passed => game over
         if self.has_passed:
             self.game_over = True
+            return True
 
         else:
             # Invert the turn => next color's turn
@@ -78,6 +79,7 @@ class Model(object):
             
             self.has_passed = True
             self.blocked_field = None
+            return True
 
     def _stones(self):
         """Returns a nested list (same shape as board) containing the colors of each stone.

@@ -9,7 +9,7 @@ import pyglet
 from game_model import Model
 import client
 # Size of Board (n x n)
-n = 4
+n = 6
 class Controller(object):
     def __init__(self):
         self.model = Model(n)
@@ -32,9 +32,11 @@ class Controller(object):
     
     # Pass on a turn
     def passing(self):
+        self.window.info.text = "You passed on your turn"
+        
         if self.model.passing():
             if self.model.get_data()['game_over']:
-                self.window.info.text = 'Game is Over!'
+                self.window.info.text = 'Game is Over! Both players passed their turn!'
             else:
                 self.window.info.text = 'Continue playing!'
 
@@ -43,8 +45,7 @@ class Controller(object):
     # Mark the grid with color-circles to indicate points
     # Happens at the end of the game
     def mark_territory(self, pos):
-        # TODO: remove comment once model has implemented Additional Task 2: Mark territory
-        # self.model.mark_territory(pos[0], pos[1])
+        self.model.mark_territory(pos[0], pos[1])
         self._update_window()
 
 if __name__ == '__main__':
