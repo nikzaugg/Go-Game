@@ -3,6 +3,7 @@
 
 import pyglet
 from pyglet.sprite import Sprite
+from pyglet.text import Label
 from graphics import Grid
 import controller
 
@@ -131,6 +132,42 @@ class Window(pyglet.window.Window):
                          width=self.width, height=self.height,
                          batch=self.batch, group=self.grp_grid,
                          n=self.data['size'])
+
+        # Game Information Display
+
+        # Information from the Controller
+        self.info = 'Welcome!'
+        
+        # Scores of each player 
+        self.score_black = str(self.data['score'][0])
+        self.score_white = str(self.data['score'][1])
+
+        # Color of the Player
+        self.player_color = str(self.data['color'])
+        
+        # Score-Label
+        Label(x=10, y=680, text='Score:', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+        
+        # Scores BLACK stone 
+        # TODO: add png image for the stone if there is time
+        Label(x=80, y=680, text='(BLACK)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores in numbers BLACK 
+        Label(x=160, y=680, text=self.score_black, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores WHITE stone 
+        # TODO: add png image for the stone if there is time
+        Label(x=220, y=680, text='(WHITE)', color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Scores in numbers WHITE  
+        Label(x=300, y=680, text=self.score_white, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+
+        # Player Color Label
+        Label(x=500, y=680, text=self.player_color, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+       
+        # Controler-Info Panel
+        Label(x=10, y=10, text=self.info, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
+       
 
     def receive_data(self, data):
         self.data.update(data)
