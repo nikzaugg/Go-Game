@@ -85,7 +85,7 @@ class Model(object):
         Attributes updated by this function:
             self.board
         """
-        for (x,y) in grp.stones:
+        for (x, y) in grp.stones:
             self.board[y][x] = None
 
     def _kill(self, grp):
@@ -131,16 +131,16 @@ class Model(object):
 
         return data
 
-    def place_stone(self, x,y):
+    def place_stone(self, x, y):
         # Check if the game is finished
         if self.game_over:
             return False
         
         # Check if the position is free
-        if self.board[y][x] != None:
+        if self.board[y][x] is not None:
             return False
 
-        new_group = Group(stones=[(x,y)], color=self.turn)
+        new_group = Group(stones=[(x, y)], color=self.turn)
         groups_to_remove = []
         groups_to_kill = []
 
@@ -153,12 +153,12 @@ class Model(object):
                 continue
             
             # Add the neighbor to the border of the new group
-            new_group.border.add((u,v))
+            new_group.border.add((u, v))
 
             # Check if the element at position neighbor is None
             other_group = self.board[v][u]
 
-            if other_group == None:
+            if other_group is None:
                 is_valid = True
             else:
                 # check if the two have the same color
@@ -170,7 +170,7 @@ class Model(object):
 
                 # The groups have different colors
                 else:
-                    if self._liberties(other) == 1:
+                    if self._liberties(other_group) == 1:
                         is_valid = True
 
                         # make sure other_group is not already in the to-kill list
