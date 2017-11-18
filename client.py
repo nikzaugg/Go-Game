@@ -3,8 +3,6 @@
 
 import pyglet
 from pyglet.sprite import Sprite
-
-# TODO: copied 'graphics.py' to this folder in order to load it.
 from graphics import Grid
 
 # constants
@@ -30,11 +28,8 @@ class Window(pyglet.window.Window):
         # Set default background color
         pyglet.gl.glClearColor(0.5,0.5,0.5,1)
         
-        # TODO: change later on (image should be called form resources, manually
-        # copied the image to this folder to run it within the command line
-        # with 'python src/view/client.py'.)
         # Load background image
-        self.image_background = pyglet.resource.image('Background.png')
+        self.image_background = pyglet.resource.image('images/Background.png')
         
         self.init_display()
 
@@ -70,7 +65,11 @@ class Window(pyglet.window.Window):
         >>> import pyglet
         >>> help(pyglet.window.mouse)
         """
-        pass
+        if button == pyglet.window.mouse.LEFT:
+            # Print mouse coordinates
+            #print('Left-click at position x={}, y={}'.format(mousex, mousey))
+            pos = self.grid.get_indices(mousex, mousey)
+            print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
 
     def on_key_press(self, symbol, modifiers):
         """Function that gets called on any key press (keyboard).
@@ -98,7 +97,8 @@ class Window(pyglet.window.Window):
             the following line of code at the end of __init__():
             pyglet.clock.schedule_interval(self.update, 1/30)
         """
-        pass
+        if self.data['size'] == self.grid.size:
+            self.init_display()
     
     def init_display(self):
         """Gather all graphical elements together and draw them simutaneously.
