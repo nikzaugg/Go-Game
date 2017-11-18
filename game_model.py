@@ -4,8 +4,8 @@
 from template import Group
 
 # constants
-BLACK = False
-WHITE = True
+BLACK = True
+WHITE = False
 
 class Model(object):
     """ This class takes care of all the calulcations and the game logic. 
@@ -74,6 +74,11 @@ class Model(object):
             self.blocked_field = None
 
     def _stones(self):
+        """Returns a nested list (same shape as board) containing the colors of each stone.
+
+        Returns:
+            list (boolean) : 
+        """
         colors = [[None for i in range(self.size)] for j in range(self.size)]
 
         for j in range(0, self.size):
@@ -94,9 +99,8 @@ class Model(object):
         Attributes updated by this function:
             self.board
         """
-        for (x,y) in grp.stones:
+        for (x, y) in grp.stones:
             self.board[y][x] = grp
-
     
     def _remove(self, grp):
         """Removes a group of stones from the game
@@ -137,6 +141,11 @@ class Model(object):
         return sum([1 for u, v in grp.border if self.board[v][u] is None])     
 
     def add_scores(self):
+        """Sums up the scores: adding empty fields + captured stones per player
+
+        Returns:
+            list (int): containing the scores of each player
+        """
         return [self.score[0] + self.captured[0], 
                 self.score[1] + self.captured[1]]
 
@@ -153,19 +162,32 @@ class Model(object):
         return data
 
     def place_stone(self, x, y):
-        # Check if the game is finished
+        """Validates a move and place the new stone.
+
+        Arguments
+            x (int): x - coordinate of the new stone
+            y (int): y - coordinate of the new stone
+
+        """
+        # check if the game is finished
         if self.game_over:
             return False
         
-        # Check if the position is free
+        # check if the position is free
         if self.board[y][x] is not None:
             return False
 
+        # check if the field is already blocked
+        if self.blocked_field == (x, y):
+            return False
+
+        # create new group with the given coordinates
         new_group = Group(stones=[(x, y)], color=self.turn)
 
         groups_to_remove = []
         groups_to_kill = []
 
+        # set the move initially to False
         is_valid = False
 
         # Look at all direct neighbors 
@@ -183,40 +205,47 @@ class Model(object):
             if other_group is None:
                 is_valid = True
             else:
-                # check if the two have the same color
+                # check the colors
                 if new_group.color == other_group.color:
                     # merge the two groups
+                    # remember to delete the old one
                     new_group = new_group + other_group
-                    # remember to delete the old group
                     groups_to_remove.append(other_group)
-
-                # The groups have different colors
                 else:
+                    # check that there is only one free adjacent field to other_group
                     if self._liberties(other_group) == 1:
                         is_valid = True
 
-                        # make sure other_group is not already in the to-kill list
+                        # remember to kill the group
                         if other_group not in groups_to_kill: 
                             groups_to_kill.append(other_group)
 
+        # new_group must have at least one free adjacent field
         if self._liberties(new_group) == 1:
             is_valid = True
 
-        # Check if the move is valid
+        # check if the move is valid
         if is_valid:
-            # Remove groups
+            # remove groups
             for grp in groups_to_remove:
                 self._remove(grp)
 
-            # Kill groups
+            # kill groups
             for grp in groups_to_kill:
                 self._kill(grp)
 
-            # Add new group
+            # add the new group
             self._add(new_group)
+
+        # ko-rule: block the field where the stone has just been placed
+        if new_group.size == 1 and len(groups_to_kill) == 1 and groups_to_kill[0].size == 1:
+            for coordinates in groups_to_kill[0].stones:
+                self.blocked_field = coordinates
+        else:
+            self.blocked_field = None
         
+        # switch the color (turn)
+        self.turn = WHITE if (self.turn == BLACK) else BLACK
         self.has_passed = False
 
-        # Switch the color (turn)
-        self.turn = WHITE if (self.turn == BLACK) else BLACK
         return True
