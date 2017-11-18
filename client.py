@@ -19,13 +19,10 @@ WHITE_TERRITORY = (0,0,0,255)
 
 class Window(pyglet.window.Window):
     
-    def __init__(self):
+    def __init__(self, controller, n):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
         
-        self.controller = controller.Controller()
-
-        # TODO: remove me later
-        n = 10
+        self.controller = controller
 		
         # Gamplay information passed by the controller
         self.data = {   'size' : n, #n comes as keyword-argument to __init__()
@@ -106,7 +103,7 @@ class Window(pyglet.window.Window):
             pos = self.grid.get_indices(mousex, mousey)
             if pos != None:
                 # TODO: remove print statement once everything is integrated
-                print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
+                # print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
                 self.controller.play(pos)
 
     def on_key_press(self, symbol, modifiers):
@@ -135,9 +132,6 @@ class Window(pyglet.window.Window):
             the following line of code at the end of __init__():
             pyglet.clock.schedule_interval(self.update, 1/30)
         """
-        if self.data['size'] == self.grid.size:
-            self.init_display()
-        
         # Game Information Updates
         # Scores of each player 
         self.score_black.text = str(self.data['score'][0])
@@ -145,6 +139,9 @@ class Window(pyglet.window.Window):
             
         self.batch_stones = pyglet.graphics.Batch()
         self.stone_sprites = []
+
+        if self.data['size'] == self.grid.size:
+            self.init_display()
     
     def init_display(self):
         """Gather all graphical elements together and draw them simutaneously.
@@ -226,12 +223,6 @@ class Window(pyglet.window.Window):
         self.batch_stones = self.batch
         self.stone_sprites = []
         
-        # TODO: remove this test data set for the stones
-        self.data['stones'][1][1] = BLACK
-        self.data['stones'][5][3] = BLACK
-        self.data['stones'][6][8] = BLACK
-        self.data['stones'][2][6] = WHITE
-        
         # Iterate trough all data stones and place the corresponding black or
         # white stone on the grid
         scaling = self.grid.field_width / self.image_black_stone.width
@@ -254,10 +245,6 @@ class Window(pyglet.window.Window):
                         
                     _s.scale = scaling
                     self.stone_sprites.append(_s)
-                    
-        
-        # TODO: remove this test data set for the territory indicators
-        self.data['territory'][5][3] = BLACK
         
         rad = 5
         
@@ -281,7 +268,6 @@ class Window(pyglet.window.Window):
                                r=rad,
                                batch=self.batch_stones,
                                group=self.grp_territory)
-
     # Receive data from the controller and update view
     def receive_data(self, data):
         self.data.update(data)

@@ -117,8 +117,8 @@ class Model(object):
         return sum([1 for u, v in grp.border if self.board[v][u] is None])     
 
     def add_scores(self):
-        return sum(self.score) + sum(self.captured)
-
+        #return sum(self.score) + sum(self.captured)
+        return [20,20]
     def get_data(self):
         data = {
             'size' : self.size,
@@ -190,7 +190,7 @@ class Model(object):
                 self._kill(grp)
 
             # Add new group
-            self._add(grp)
+            self._add(new_group)
         
         self.has_passed = False
 

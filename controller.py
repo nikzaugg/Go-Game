@@ -8,16 +8,17 @@
 import pyglet
 from game_model import Model
 import client
-
+n = 4
 class Controller(object):
     def __init__(self):
-        self.window = client.Window()
-        self.model = Model(19)
+        self.model = Model(n)
+        self.window = client.Window(self, n)
+        
         self.data = self.model.get_data()
         self.window.receive_data(self.data)
         
         # TODO: Do we run the app here as well?
-        # pyglet.app.run()
+        pyglet.app.run()
     
     def _update_window(self):
         self.window.receive_data(self.model.get_data())
@@ -41,7 +42,7 @@ class Controller(object):
     
     def mark_territory(self, pos):
         # TODO: remove comment once model has implemented Additional Task 2: Mark territory
-        # self.model.mark_territory(pos.x, pos.y)
+        # self.model.mark_territory(pos[0], pos[1])
         self._update_window()
 
 if __name__ == '__main__':
