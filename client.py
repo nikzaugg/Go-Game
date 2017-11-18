@@ -19,6 +19,7 @@ WHITE_TERRITORY = (0, 0, 0, 255)
 
 MAX_STONE_SCALING = 0.6     # 1 is original size
 MAX_GRID_SIZE = 0.7         # 1 is full size of window
+LITTLE_STONE_SIZE = 0.2
 
 class Window(pyglet.window.Window):
     """Render the game data within a pyglet window."""
@@ -195,32 +196,56 @@ class Window(pyglet.window.Window):
         self.score_white = Label(x=170, y=label_y, text=str(self.data['score'][0]), color=label_text_color,
                           font_size=label_font_size, batch=self.batch, group=self.grp_label)
 
-        # Stones for BLACK and WHITE scores
+
+
+        # Create little black stones to use them for labels and current player indicator
+        # BLACK label stone
+        self.black_label_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.black_label_stone.scale = LITTLE_STONE_SIZE
+
+        # WHITE label stone
+        self.white_label_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.white_label_stone.scale = LITTLE_STONE_SIZE
+
+        # BLACK current player stone
+        self.black_current_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.black_current_stone.scale = LITTLE_STONE_SIZE
+
+        # WHITE current stone
+        self.white_current_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.white_current_stone.scale = LITTLE_STONE_SIZE
+
+        # Stone label for scores
         self.label_stones = []
-        stone_scale = 0.2
-        for stone in [
-            {'image': self.image_black_stone, 'position': 80},
-            {'image': self.image_white_stone, 'position': 150}]:
-            stone = Sprite(stone['image'],
-                           batch=self.batch,
-                           group=self.grp_label,
-                           x=stone['position'],
-                           y=label_y + self.image_white_stone.height*stone_scale/4)
-            stone.scale = stone_scale
-            self.label_stones.append(stone)
+        # BLACK stone for score label
+        black_label = self.black_label_stone
+        black_label.set_position(80, label_y + self.image_black_stone.height*LITTLE_STONE_SIZE/4)
+        self.label_stones.append(black_label)
+
+        # WHITE stone for score label
+        white_label = self.white_label_stone
+        white_label.set_position(150, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
+        self.label_stones.append(white_label)
 
         # Player Color Label
-        self.label_current_player = []
         self.player_color = Label(x=550, y=label_y, text="Your color: ", color=(0, 0, 0, 255),
             font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
-        stone_color = self.image_black_stone if self.data['color'] == BLACK else self.image_white_stone
-        stone = Sprite(stone_color,
-                       batch=self.batch,
-                       group=self.grp_label,
-                       x=660,
-                       y=label_y + self.image_white_stone.height*stone_scale/4)
-        stone.scale = stone_scale
-        self.label_current_player.append(stone)
+        
+        # Set position of current player stones
+        self.black_current_stone.set_position(660, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
+        self.white_current_stone.set_position(660, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
+
+        # Display current player
+        self.label_current_player = []
+        self.update_current_player()
 
         # Game Buttons
         # Button that can be pressed to pass on current round
@@ -303,6 +328,11 @@ class Window(pyglet.window.Window):
         """Update scores for BLACK and WHITE."""
         self.score_black.text = str(self.data['score'][1])
         self.score_white.text = str(self.data['score'][0])
+
+    def update_current_player(self):
+        """"""
+        current_stone = self.black_current_stone if self.data['color'] == BLACK else self.white_current_stone
+        self.label_current_player = current_stone
 
 
     def receive_data(self, data):
