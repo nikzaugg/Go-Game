@@ -4,10 +4,14 @@
 import pyglet
 from pyglet.sprite import Sprite
 from graphics import Grid
+from graphics import Circle
 
 # constants
 BLACK = True
 WHITE = False
+
+BLACK_TERRITORY = (255,255,255,255)
+WHITE_TERRITORY = (0,0,0,255)
 
 class Window(pyglet.window.Window):
     
@@ -120,7 +124,7 @@ class Window(pyglet.window.Window):
         self.grp_grid = pyglet.graphics.OrderedGroup(1)
         self.grp_label = pyglet.graphics.OrderedGroup(2)
         self.grp_stones = pyglet.graphics.OrderedGroup(3)
-        self.grp_terrritory = pyglet.graphics.OrderedGroup(4)
+        self.grp_territory = pyglet.graphics.OrderedGroup(4)
         
         # Display background image
         self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
@@ -130,49 +134,86 @@ class Window(pyglet.window.Window):
         #self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
         
         # Display grid
-        self.grid = Grid(x=self.width/2, y=self.height/2,
-                         width=self.width, height=self.height,
-                         batch=self.batch, group=self.grp_grid,
+        scale_factor = 0.75
+        self.grid = Grid(x=self.width/2,
+                         y=self.height/2,
+                         width=self.width*scale_factor,
+                         height=self.height*scale_factor,
+                         batch=self.batch,
+                         group=self.grp_grid,
                          n=self.data['size'])
         
-        #self.image_black_stone = Sprite(self.image_black_stone, batch=self.batch, group=self.grp_stones) 
-       # self.image_white_stone = Sprite(self.image_white_stone, batch=self.batch, group=self.grp_stones)
-        
-        
+        # Center both black and white stones
         def center_image(image):
             """Sets an image's anchor point to its center"""
             image.anchor_x = image.width/2
             image.anchor_y = image.height/2
             
-            
-            
+        center_image(self.image_black_stone)
+        center_image(self.image_white_stone)
+        
+        # Display the stones on the regular batch
         self.batch_stones = self.batch
         self.stone_sprites = []
         
-    
-        self.board = self.data['stones']
+        # TODO: remove this test data set for the stones
+        self.data['stones'][1][1] = BLACK
+        self.data['stones'][5][3] = BLACK
+        self.data['stones'][6][8] = BLACK
+        self.data['stones'][2][6] = WHITE
         
-        self.board[1][1] = BLACK
-        self.board[5][3] = BLACK
-        self.board[6][8] = BLACK
-        self.board[2][6] = WHITE
-        
+        # Iterate trough all data stones and place the corresponding black or
+        # white stone on the grid
+        scaling = self.grid.field_width / self.image_black_stone.width
         for i in range(0, self.data['size']):
             for j in range(0, self.data['size']):
-                if self.board[j][i] != None:
+                if self.data['stones'][j][i] != None:
                     x_coord, y_coord = self.grid.get_coords(i, j)
-                    if self.board[j][i] == BLACK:
-                        _s = Sprite(self.image_black_stone, batch=self.batch_stones, group=self.grp_stones, x=x_coord, y=y_coord)
-                    elif self.board[j][i] == WHITE:
-                        _s = Sprite(self.image_white_stone, batch=self.batch_stones, group=self.grp_stones, x=x_coord, y=y_coord)
+                    if self.data['stones'][j][i] == BLACK:
+                        _s = Sprite(self.image_black_stone,
+                                    batch=self.batch_stones,
+                                    group=self.grp_stones,
+                                    x=x_coord,
+                                    y=y_coord)
+                    elif self.data['stones'][j][i] == WHITE:
+                        _s = Sprite(self.image_white_stone,
+                                    batch=self.batch_stones,
+                                    group=self.grp_stones,
+                                    x=x_coord,
+                                    y=y_coord)
                         
-                    _s.scale = self.grid.field_width / self.image_black_stone.width
+                    _s.scale = scaling
                     self.stone_sprites.append(_s)
+                    
+        
+        # TODO: remove this test data set for the territory indicators
+        self.data['territory'][5][3] = BLACK
+        
+        rad = 5
+        
+        # Iterate trough all territory indicators and place the corresponding
+        # black or white circle on the grid or above stones
+        for i in range(0, self.data['size']):
+            for j in range(0, self.data['size']):
+                if self.data['territory'][j][i] != None:
+                    x_coord, y_coord = self.grid.get_coords(i, j)
+                    if self.data['territory'][j][i] == BLACK:
+                        Circle(x_coord,
+                               y_coord,
+                               color=BLACK_TERRITORY,
+                               r=rad,
+                               batch=self.batch_stones,
+                               group=self.grp_territory)
+                    elif self.data['territory'][j][i] == WHITE:
+                        Circle(x_coord,
+                               y_coord,
+                               color=WHITE_TERRITORY,
+                               r=rad,
+                               batch=self.batch_stones,
+                               group=self.grp_territory)
             
-        # prepare stones
-        #center_image(self.image_black_stone)
-        #center_image(self.image_white_stone)
-
+# main program
+# open the window
 if __name__ == '__main__':
     window = Window()
     pyglet.app.run()
