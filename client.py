@@ -97,7 +97,7 @@ class Window(pyglet.window.Window):
                 if pos != None:
                     self.controller.mark_territory(pos)
 
-        # Handle cliucks during game
+        # Handle clicks during game
         
         # Check if pass-button was pressed
         if (mousex, mousey) in self.button_pass:

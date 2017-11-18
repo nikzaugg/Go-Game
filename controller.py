@@ -48,5 +48,10 @@ class Controller(object):
         self.model.mark_territory(pos[0], pos[1])
         self._update_window()
 
+    # Create new game
+    def new_game(self):
+        self.model.__init__(n)
+        self.window.receive_data(self.model.get_data())
+        self.window.info.text = "New game, let's start!"
 if __name__ == '__main__':
     c = Controller()
