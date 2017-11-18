@@ -28,12 +28,13 @@ class Window(pyglet.window.Window):
         n = 10
 		
         # Gamplay information passed by the controller
-        self.data = {'size' : n, #n comes as keyword-argument to __init__()
-			'stones' : [[None for x in range(n)] for y in range(n)],
-			'territory': [[None for x in range(n)] for y in range(n)],
-			'color' : None,
-			'game_over': False,
-			'score' : [0, 0]}
+        self.data = {   'size' : n, #n comes as keyword-argument to __init__()
+                        'stones' : [[None for x in range(n)] for y in range(n)],
+                        'territory': [[None for x in range(n)] for y in range(n)],
+                        'color' : None,
+                        'game_over': False,
+                        'score' : [0, 0]
+                        }
         
         # Set default background color
         pyglet.gl.glClearColor(0.5,0.5,0.5,1)
@@ -54,9 +55,13 @@ class Window(pyglet.window.Window):
         """
         # Clear out old graphics
         self.clear()
-        
+
         # Drawing the batch (which does not contain any graphics yet) [in on_draw()]
         self.batch.draw()
+
+        # Check if Game is over, if True, draw the New Game Button
+        if(self.data['game_over']):
+            self.button_newgame.draw()
 
     def on_mouse_press(self, mousex, mousey, button, modifiers):
         """Function called on any mouse button press.
@@ -78,6 +83,15 @@ class Window(pyglet.window.Window):
         >>> import pyglet
         >>> help(pyglet.window.mouse)
         """
+        # Check if pass-button was pressed
+        if (mousex, mousey) in self.button_pass:
+            self.controller.passing()
+        
+        # Check for clicks on New Game Button only when game is Over
+        if(self.data['game_over']):
+            if (mousex, mousey) in self.button_newgame:
+                self.controller.new_game()
+
         if button == pyglet.window.mouse.LEFT:
             # Print mouse coordinates
             #print('Left-click at position x={}, y={}'.format(mousex, mousey))
@@ -185,8 +199,12 @@ class Window(pyglet.window.Window):
         Label(x=10, y=10, text=self.info, color=(0, 0, 0, 255),font_size=12, batch=self.batch, group=self.grp_label)
         
         # Game Buttons
-        pass_button = Button(pos=(600,40), text='Button', batch=self.batch)        
-        
+        # Button that can be pressed to pass on current round
+        self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)  
+
+        # New-Game Button
+        self.button_newgame = Button(pos=(480,40), text='New Game')   
+
         # Center both black and white stones
         def center_image(image):
             """Sets an image's anchor point to its center"""
