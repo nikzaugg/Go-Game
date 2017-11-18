@@ -8,12 +8,32 @@ BLACK = False
 WHITE = True
 
 class Model(object):
+    """ This class takes care of all the calulcations and the game logic. 
+        It prepares the data for the Controller. 
+
+    """
     def __init__(self, n=11):
-        # Gameplay Attributes
+        """This function initializes a new model. 
+
+        Arguments:
+            n (int) - size of the grid
+
+        Attributes initialized by this function:
+            self.size
+            self.turn
+            self.blocked_field
+            self.has_passed
+            self.game_over
+            self.board
+            self.territory
+            self.score
+            self.captured
+        """
+        # gameplay attributes
         self.size = n
         self.turn = BLACK
 
-        # used for Ko rule
+        # used for ko-rule
         self.blocked_field = None
 
         # used to detect if bother players pass
@@ -22,18 +42,20 @@ class Model(object):
         # game over flag
         self.game_over = False
 
-        # The board is represented by a SxS-matrix where each entry
-        # contains the information which stone lies there.
+        # the board is represented by a size x size - matrix. 
         self.board = [[None for i in range(self.size)] for j in range(self.size)]   
         self.territory = [[None for i in range(self.size)] for j in range(self.size)]
 
-        # We need to count the captured stones that got removed from the board
-        # Score from empty fields at the end of the game.
+        # score from empty fields at the end of the game.
         self.score = [0, 0]
-        # Stones killed during the game
+
+        # stones killed during the game
         self.captured = [0, 0] 
 
     def passing(self):
+        """
+        """
+
         # Do nothing if game_over = True
         if self.game_over:
             return False
@@ -111,22 +133,21 @@ class Model(object):
 
         Returns:
             (int): nr. of liberties of that group
-
-
         """
         return sum([1 for u, v in grp.border if self.board[v][u] is None])     
 
     def add_scores(self):
-        return sum(self.score) + sum(self.captured)
+        return [sum(self.score[0]) + sum(self.captured[0]), 
+                sum(self.score[1]) + sum(self.captured[1])]
 
     def get_data(self):
         data = {
-            'size' : self.size,
-            'stones' : self._stones(),
+            'size'      : self.size,
+            'stones'    : self._stones(),
             'territory' : self.territory,
             'game_over' : self.game_over,
-            'score' : self.add_scores(),
-            'color' : self.turn
+            'score'     : self.add_scores(),
+            'color'     : self.turn
         }
 
         return data
@@ -141,6 +162,7 @@ class Model(object):
             return False
 
         new_group = Group(stones=[(x, y)], color=self.turn)
+
         groups_to_remove = []
         groups_to_kill = []
 
@@ -185,12 +207,13 @@ class Model(object):
             # Remove groups
             for grp in groups_to_remove:
                 self._remove(grp)
+
             # Kill groups
             for grp in groups_to_kill:
                 self._kill(grp)
 
             # Add new group
-            self._add(grp)
+            self._add(new_group)
         
         self.has_passed = False
 
