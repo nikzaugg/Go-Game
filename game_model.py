@@ -10,7 +10,6 @@ WHITE = False
 class Model(object):
     """ This class takes care of all the calulcations and the game logic. 
         It prepares the data for the Controller. 
-
     """
     def __init__(self, n=11):
         """This function initializes a new model. 
@@ -53,16 +52,23 @@ class Model(object):
         self.captured = [0, 0] 
 
     def passing(self):
-        """
+        """Action when a player passes his turn.
+
+        Variables changed by this function:
+            self.game_over
+            self.turn
+            self.has_passed
+            self.blocked_field
         """
 
-        # Do nothing if game_over = True
+        # do nothing if game is over
         if self.game_over:
             return False
         
         # passed => game over
         if self.has_passed:
             self.game_over = True
+
         else:
             # Invert the turn => next color's turn
             if self.turn == BLACK:
@@ -150,6 +156,11 @@ class Model(object):
                 self.score[1] + self.captured[1]]
 
     def get_data(self):
+        """Returns the data object to the controller. 
+
+        Returns:
+            data (dictionary) - data object for the controller
+        """
         data = {
             'size'      : self.size,
             'stones'    : self._stones(),
@@ -249,3 +260,211 @@ class Model(object):
         self.has_passed = False
 
         return True
+
+    def _compute_score(self):
+        """Counts the number of marked fields.
+        """
+
+        # reset the scores to zero
+        self.score = [0, 0]
+
+        for j in range(0, self.size):
+            for i in range(0, self.size):
+                # count the black stones
+                if self.territory[j][i] == BLACK:
+                    if self.board[j][i] != None:
+                        # add 1 additional point for dead stones inside the territory 
+                        self.score[BLACK] += 2
+                    else:
+                        self.score[BLACK] += 1
+                        
+                # count the white stones        
+                elif self.territory[j][i] == WHITE:
+                    if self.board[j][i] != None:
+                        # add 1 additional point for dead stones inside the territory 
+                        self.score[WHITE] += 2
+                    else:
+                        self.score[WHITE] += 1
+
+    def _claim_empty(self, x, y, color, area=None):
+        """ Claims an empty field including all adjacent (neighboring) empty fields.
+
+        Arguments
+            x (int) - x-coordinate
+            y (int) - y-coordinate
+            color (boolean) - color of player the empty field will receive
+            area (list) - visited coordinates / fields
+        """
+
+        # initialize a new empty list
+        if area is None:
+            area = list()
+
+        # recursion stopping criteria
+        if self.board[y][x] is not None or (x, y) in area:
+            return
+
+        # claim the empty field
+        self.territory[y][x] = color
+        area.append((x, y))
+
+        # recursively checking all neighbors
+        for (u, v) in [(x-1, y), (x, y-1), (x+1, y), (x, y+1)]:
+
+            # check that the neighbor actually exists on the board
+            if u < 0 or v < 0 or u >= self.size or v >= self.size:
+                continue
+            
+            # claim neighboring empty field
+            if (u, v) not in area and self.board[v][u] is None:
+                self._claim_empty(u, v, color, area=area)
+
+    def _claim_group(self, x, y, color, area=None):
+        """Claims an entire group and also all adjacent empty fields.
+
+        Arguments
+            x (int) - x-coordinate
+            y (int) - y-coordinate
+            color (boolean) - color of player the empty field will receive
+            area (list) - visited coordinates / fields
+        """
+
+        # initialize a new empty list
+        if area is None:
+            area = list()
+
+        # claiming each stone in the group at coordinates (x, y)
+        for (u, v) in self.board[y][x].stones:
+            if (u, v) not in area:
+                area.append((u, v))
+                self.territory[v][u] = color
+        
+        # claiming each empty field in the adjacent empty fields
+        for (u, v) in self.board[y][x].border:
+            if self.board[v][u] is None and (u, v) not in area:
+                self._claim_empty(u, v, color, area=area) 
+    
+    def _find_empty(self, x, y, area=None, count=None):
+        """ Finds the connected empty fields starting at (x, y) and
+        counts the adjacent stones of each color.
+
+        Returns:
+            area (list) - empty fields
+            count (list) - number of adjacents stones to [Black, White]
+        """
+
+        # TODO: Apparently there is a bug in this code. According to the instructions.
+        # TODO: Fix that stones are counted multiple times if more than one empty field is adjacent to them
+
+        # initialize a new empty list
+        if area is None:
+            area = list()
+
+        # initializes the count
+        if count is None:
+            count = [0, 0]
+
+        #  recursion stopping criteria
+        if self.board[y][x] is not None or (x, y) in area:
+            return area, count
+
+        area.append((x, y))
+
+        # recursively checking all neighbors
+        for (u, v) in [(x-1, y), (x, y-1), (x+1, y), (x, y+1)]:
+
+            # check that the neighbor actually exists on the board
+            if u < 0 or v < 0 or u >= self.size or v >= self.size:
+                continue
+            
+            # claim neighboring empty field
+            if (u, v) not in area:
+                if self.board[v][u] is None:
+                    self._find_empty(u, v, area=area, count=count)
+                else:
+                    count[self.board[v][u].color] += 1
+
+        return area, count
+
+    def mark_territory(self, x, y):
+        """Function that can be evoked by user to claim territory for
+        one player.
+        For empty fields it will also mark all adjacent empty fields,
+        for fields that contain a stone it will mark the entire stone
+        group and all adjacent empty spaces.
+
+        Arguments:
+            x, y (int): coordinates of the field
+
+        Attributes updated by this function:
+            self.score
+            self.territory
+        """
+
+        # valid if the game is finished
+        if not self.game_over:
+            return
+
+        # claim an empty field
+        if self.board[y][x] is None:
+            # Cycle through the colours depending on how the field is currently marked
+            col_dict = {None:BLACK, BLACK:WHITE, WHITE:None}
+            color = col_dict[self.territory[y][x]]
+
+            # recursively claim the fields
+            self._claim_empty(x, y, color)
+
+        # claim a group
+        else:
+            # Choose whether to mark or unmark the group
+            if self.territory[y][x] is None:
+                color = not self.board[y][x].color
+            else:
+                color = None
+
+            # recursively claim the fields
+            self._claim_group(x, y, color)
+
+        # compute the score
+        self._compute_score()
+
+    def find_territory(self):
+        """Tries to automatically claim territory for the proper players.
+
+        Current algorithm:
+            It just claims empty areas that are completely surrounded
+            by one color. Therefore it will not recognise prisoners or dead groups.
+
+        Attributes updated by this function:
+            self.score
+            self.territory
+        """
+
+        # TODO: Update this algorithm to claim fields that are completely surrounded by one color (recognize prisoners and dead groups).
+
+        # Keep track of the checked fields
+        area = list()
+
+        for y in range(self.size):
+            for x in range(self.size):
+
+                # skip the coordinates if they have already been checked
+                if (x, y) in area:
+                    continue
+
+                # only check empty fields
+                if self.board[y][x] is None:
+
+                    # Find all adjacent empty fields
+                    # Count contains the number of adjacent stones of each color.
+                    _a, count = self._find_empty(x, y, area=area)
+                    area += _a
+
+                    # Claim the territory if one color has no stones adjacent
+                    if count[BLACK] == 0 and count[WHITE] > 0:
+                        self._claim_empty(x, y, WHITE)
+                    elif count[WHITE] == 0 and count[BLACK] > 0:
+                        self._claim_empty(x, y, BLACK)
+
+        # compute the score
+        self._compute_score()
