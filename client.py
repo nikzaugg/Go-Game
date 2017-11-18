@@ -140,14 +140,32 @@ class Window(pyglet.window.Window):
         # Game Information Updates
         # Scores of each player
         self.update_scores()
+        self.update_current_player()
+        self.update_stones()
+        self.update_stones_on_grid()
             
         # Approach 1: works
-        if self.data['size'] == self.grid.size:
+        # If the new size in the data is different than the current size
+        if self.data['size'] != self.grid.size:
             self.init_display()
     
         # Approach 2: does not work
         #self.update_current_player()
         #self.update_stones_on_grid()
+    
+    def update_stones(self):
+        # Display the stones on the regular batch
+        self.batch_stones = self.batch
+        self.stone_sprites = []
+
+        # Center black and white stones
+        def center_image(image):
+            """Sets an image's anchor point to its center"""
+            image.anchor_x = image.width/2
+            image.anchor_y = image.height/2
+            
+        center_image(self.image_black_stone)
+        center_image(self.image_white_stone)
 
     def init_display(self):
         """Gather all graphical elements together and draw them simutaneously.
@@ -166,7 +184,6 @@ class Window(pyglet.window.Window):
         self.init_back()
         self.init_grid()
         self.init_label()
-        self.init_stons()
         self.init_territory()
         
         # Center black and white stones
@@ -181,11 +198,11 @@ class Window(pyglet.window.Window):
     def init_back(self):
         """Load the background."""
         # Display background image
-        self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
+        # self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
         
         # Alternative approach to display image
-        #self.graphical_obj = []
-        #self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
+        self.graphical_obj = []
+        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
 
     def init_grid(self):
         """Load the grid."""
@@ -199,90 +216,57 @@ class Window(pyglet.window.Window):
                          n=self.data['size'])
 
     def init_label(self):
-        """Load all labels and buttons."""
+        """Load all labels and buttons"""
         # Game Information Display
         label_y = 670                 # y position of scores and next turn labels
         label_font_size = 12
         label_text_color = (0, 0, 0, 255)
-
-        # Create little black and white stones to use them for labels and current player indicator
-        # BLACK label stone
-        self.black_label_stone = Sprite(self.image_black_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.black_label_stone.scale = LITTLE_STONE_SIZE
-
-        # WHITE label stone
-        self.white_label_stone = Sprite(self.image_white_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.white_label_stone.scale = LITTLE_STONE_SIZE
-
-        # BLACK current player stone
-        self.black_current_stone = Sprite(self.image_black_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.black_current_stone.scale = LITTLE_STONE_SIZE
-
-        # WHITE current stone
-        self.white_current_stone = Sprite(self.image_white_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.white_current_stone.scale = LITTLE_STONE_SIZE
-
-        # Controler-Info Panel
-        # The Text of this label is directly changed inside the controller
-        self.info = Label(x=10, y=10, text="Welcome!", color=label_text_color,
-                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
         
+        # Controller-Info Panel
+        # The Text of this label is directly changed inside the controller
+        self.info = Label(x=10, y=10, text="Let's start!", color=label_text_color,
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
+
         # Score-Label
         Label(x=10, y=label_y, text='Score:', color=label_text_color,
                           font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
 
-        # Scores for BLACK and WHITE
+        # SCORES BLACK PLAYER
         self.score_black = Label(x=100, y=label_y, text=str(self.data['score'][1]), color=label_text_color,
                           font_size=label_font_size, batch=self.batch, group=self.grp_label)
+        self.black_label_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.black_label_stone.scale = LITTLE_STONE_SIZE
+        self.black_label_stone.set_position(65, label_y - self.black_label_stone.height/4)
+
+        # SCORES WHITE PLAYER
         self.score_white = Label(x=170, y=label_y, text=str(self.data['score'][0]), color=label_text_color,
                           font_size=label_font_size, batch=self.batch, group=self.grp_label)
+        self.white_label_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.white_label_stone.scale = LITTLE_STONE_SIZE
+        self.white_label_stone.set_position(135, label_y - self.white_label_stone.height/4)
 
-        # Stone label for scores
-        self.label_stones = []
-        # BLACK stone for score label
-        black_label = self.black_label_stone
-        black_label.set_position(80, label_y + self.image_black_stone.height*LITTLE_STONE_SIZE/4)
-        self.label_stones.append(black_label)
-
-        # WHITE stone for score label
-        white_label = self.white_label_stone
-        white_label.set_position(150, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
-        self.label_stones.append(white_label)
-
-        # Player Color Label
+        # CURRENT PLAYER STONE
         self.player_color = Label(x=550, y=label_y, text="Your color: ", color=label_text_color,
             font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
-        
-        # Set position of current player stones
-        self.black_current_stone.set_position(660, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
-        self.white_current_stone.set_position(660, label_y + self.image_white_stone.height*LITTLE_STONE_SIZE/4)
 
-        # Display current player
-        self.label_current_player = []
-        self.update_current_player()
+        # INITIAL PLAYER STONE
+        self.current_player_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.current_player_stone.scale = LITTLE_STONE_SIZE
+        self.current_player_stone.set_position(660, label_y - self.current_player_stone.height/4) 
 
-        # Game Buttons
+        # Game Buttons  
         # Button that can be pressed to pass on current round
         self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)
-
+        
         # New-Game Button
         self.button_newgame = Button(pos=(480,40), text='New Game')
-
-    def init_stons(self):
-        """Load all stones on the grid."""
-        # Display the stones on the regular batch
-        self.batch_stones = self.batch
-        self.stone_sprites = []
-        self.update_stones_on_grid()
-
+        
     def init_territory(self):
         """ """
         # TODO: create own function to update terretory
@@ -308,7 +292,6 @@ class Window(pyglet.window.Window):
                                r=rad,
                                batch=self.batch_stones,
                                group=self.grp_territory)
-
 
     def update_stones_on_grid(self):
         """Place all stones on the grid"""
@@ -348,9 +331,21 @@ class Window(pyglet.window.Window):
 
     def update_current_player(self):
         """Update stone of current player."""
-        current_stone = self.black_current_stone if self.data['color'] == BLACK else self.white_current_stone
-        self.label_current_player = current_stone
-
+        self.current_player_stone.delete()
+        # If its the BLACK players turn
+        if self.data['color']:
+            self.current_player_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+            self.current_player_stone.scale = LITTLE_STONE_SIZE
+            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
+        # If its the WHITE players turn
+        else:
+            self.current_player_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+            self.current_player_stone.scale = LITTLE_STONE_SIZE
+            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
 
     def receive_data(self, data):
         """Receive data from the controller and update view"""

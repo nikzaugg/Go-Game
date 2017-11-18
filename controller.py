@@ -8,21 +8,20 @@
 import pyglet
 from game_model import Model
 import client
+# Size of Board (n x n)
 n = 4
 class Controller(object):
     def __init__(self):
         self.model = Model(n)
         self.window = client.Window(self, n)
-        
-        self.data = self.model.get_data()
-        self.window.receive_data(self.data)
-        
-        # TODO: Do we run the app here as well?
+        self.window.receive_data(self.model.get_data())
         pyglet.app.run()
     
+    # Send updated Data to the View
     def _update_window(self):
         self.window.receive_data(self.model.get_data())
         
+    # Send instructions of placing a stone to the Model
     def play(self, pos):
         if(self.model.place_stone(pos[0], pos[1])):
             self.window.info.text = "Nice Move!"
@@ -30,7 +29,8 @@ class Controller(object):
             self.window.info.text = 'Invalid move!'
 
         self._update_window()
-            
+    
+    # Pass on a turn
     def passing(self):
         if self.model.passing():
             if self.model.get_data()['game_over']:
@@ -40,6 +40,8 @@ class Controller(object):
 
         self._update_window()
     
+    # Mark the grid with color-circles to indicate points
+    # Happens at the end of the game
     def mark_territory(self, pos):
         # TODO: remove comment once model has implemented Additional Task 2: Mark territory
         # self.model.mark_territory(pos[0], pos[1])
