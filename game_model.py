@@ -359,9 +359,8 @@ class Model(object):
             area (list) - empty fields
             count (list) - number of adjacents stones to [Black, White]
         """
-
-        # TODO: Apparently there is a bug in this code. According to the instructions.
-        # TODO: Fix that stones are counted multiple times if more than one empty field is adjacent to them
+        
+        # TODO: BUG: Fix that stones are counted multiple times if more than one empty field is adjacent to them
 
         # initialize a new empty list
         if area is None:
@@ -390,6 +389,7 @@ class Model(object):
                     self._find_empty(u, v, area=area, count=count)
                 else:
                     count[self.board[v][u].color] += 1
+                    print("Stone: ", self.board[v][u], "Color: ", self.board[v][u].color, "Stones: ", self.board[v][u].stones, "Border: ", self.board[v][u].border)
 
         return area, count
 
@@ -414,7 +414,7 @@ class Model(object):
 
         # claim an empty field
         if self.board[y][x] is None:
-            # Cycle through the colours depending on how the field is currently marked
+            # cycle through the colours depending on how the field is currently marked
             col_dict = {None:BLACK, BLACK:WHITE, WHITE:None}
             color = col_dict[self.territory[y][x]]
 
@@ -450,13 +450,13 @@ class Model(object):
         # TODO: Update this algorithm to claim fields that are completely surrounded by one color (recognize prisoners and dead groups).
 
         # Keep track of the checked fields
-        area = list()
+        covered_area = list()
 
         for y in range(self.size):
             for x in range(self.size):
 
                 # skip the coordinates if they have already been checked
-                if (x, y) in area:
+                if (x, y) in covered_area:
                     continue
 
                 # only check empty fields
@@ -464,12 +464,14 @@ class Model(object):
 
                     # Find all adjacent empty fields
                     # Count contains the number of adjacent stones of each color.
-                    _a, count = self._find_empty(x, y, area=area)
-                    area += _a
+                    area, count = self._find_empty(x, y, area=covered_area)
+                    covered_area += area
 
-                    # Claim the territory if one color has no stones adjacent
+                    # claim the territory if black has no adjacent stones
                     if count[BLACK] == 0 and count[WHITE] > 0:
                         self._claim_empty(x, y, WHITE)
+
+                    # claim the territory if white has no adjacent stones
                     elif count[WHITE] == 0 and count[BLACK] > 0:
                         self._claim_empty(x, y, BLACK)
 
