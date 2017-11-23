@@ -9,16 +9,13 @@ import pyglet
 from game_model import Model
 import client
 
-# Size of Board (n x n)
-n = 0
-
 class Controller(object):
     # Initialize a new go game.
     # The grid size is specified within the starting screen.
     def __init__(self, grid_size):
-        n = int(grid_size)
-        self.model = Model(n)
-        self.window = client.Window(self, n)
+        self.n = int(grid_size)
+        self.model = Model(self.n)
+        self.window = client.Window(self, self.n)
         self.window.receive_data(self.model.get_data())
         pyglet.app.run()
     
@@ -55,6 +52,6 @@ class Controller(object):
 
     # Create new game
     def new_game(self):
-        self.model.__init__(n)
+        self.model.__init__(self.n)
         self.window.receive_data(self.model.get_data())
         self.window.info.text = "New game, let's start!"
