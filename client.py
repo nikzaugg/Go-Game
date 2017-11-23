@@ -143,6 +143,7 @@ class Window(pyglet.window.Window):
         self.update_current_player()
         self.update_stones()
         self.update_stones_on_grid()
+        self.init_territory()
             
         # Approach 1: works
         # If the new size in the data is different than the current size
