@@ -53,5 +53,5 @@ class Controller(object):
     # Create new game
     def new_game(self):
         self.model.__init__(self.n)
-        self.window.receive_data(self.model.get_data())
+        self.window.new_game(self.model.get_data())
         self.window.info.text = "New game, let's start!"

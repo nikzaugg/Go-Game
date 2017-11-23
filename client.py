@@ -21,6 +21,11 @@ MAX_STONE_SCALING = 0.6     # 1 is original size
 MAX_GRID_SIZE = 0.7         # 1 is full size of window
 LITTLE_STONE_SIZE = 0.2
 
+# resources
+BACKGROUND = pyglet.resource.image('images/Background.png')
+BLACK_STONE = pyglet.resource.image('images/BlackStone.png')
+WHITE_STONE = pyglet.resource.image('images/WhiteStone.png')
+
 class Window(pyglet.window.Window):
     """Render the game data within a pyglet window."""
 
@@ -43,12 +48,230 @@ class Window(pyglet.window.Window):
         pyglet.gl.glClearColor(0.5,0.5,0.5,1)
         
         # Load background image and stones
-        self.image_background = pyglet.resource.image('images/Background.png')
-        self.image_black_stone = pyglet.resource.image('images/BlackStone.png')
-        self.image_white_stone = pyglet.resource.image('images/WhiteStone.png')
+        self.image_background = BACKGROUND
+        self.image_black_stone = BLACK_STONE
+        self.image_white_stone = WHITE_STONE
+
+        # Center black and white stones
+        self.init_resources()
         
         # Initialize the display
         self.init_display()
+
+    def init_resources(self):
+        """Center black and whtie stones for proper visualization"""
+
+        def center_image(image):
+            """Sets an image's anchor point to its center"""
+            image.anchor_x = image.width/2
+            image.anchor_y = image.height/2
+            
+        center_image(self.image_black_stone)
+        center_image(self.image_white_stone)
+
+    def init_display(self):
+        """Gather all graphical elements together and draw them simutaneously.
+        """
+        # Creating a batch to display all graphics
+        self.batch = pyglet.graphics.Batch()
+        
+        # Graphic groups (groups of lower index get drawn first)
+        self.grp_back = pyglet.graphics.OrderedGroup(0)
+        self.grp_grid = pyglet.graphics.OrderedGroup(1)
+        self.grp_label = pyglet.graphics.OrderedGroup(2)
+        self.grp_stones = pyglet.graphics.OrderedGroup(3)
+        self.grp_territory = pyglet.graphics.OrderedGroup(4)
+
+        # Initially load all graphic groups.
+        self.init_back()
+        self.init_grid()
+        self.init_label()
+
+    def init_back(self):
+        """Load the background."""
+        # Display background image
+        # self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
+        
+        # Alternative approach to display image
+        self.graphical_obj = []
+        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
+
+    def init_grid(self):
+        """Load the grid."""
+        # Display grid
+        self.grid = Grid(x=self.width/2,
+                         y=self.height/2,
+                         width=self.width*MAX_GRID_SIZE,
+                         height=self.height*MAX_GRID_SIZE,
+                         batch=self.batch,
+                         group=self.grp_grid,
+                         n=self.data['size'])
+
+    def init_label(self):
+        """Load all labels and buttons"""
+        # Game Information Display
+        label_y = 670                 # y position of scores and next turn labels
+        label_font_size = 12
+        label_text_color = (0, 0, 0, 255)
+        
+        # Controller-Info Panel
+        # The Text of this label is directly changed inside the controller
+        self.info = Label(x=10, y=10, text="Let's start!", color=label_text_color,
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
+
+        # Score-Label
+        Label(x=10, y=label_y, text='Score:', color=label_text_color,
+                          font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
+
+        # SCORES BLACK PLAYER
+        self.score_black = Label(x=100, y=label_y, text=str(self.data['score'][1]), color=label_text_color,
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
+        self.black_label_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.black_label_stone.scale = LITTLE_STONE_SIZE
+        self.black_label_stone.set_position(80, label_y + self.black_label_stone.height/4)
+
+        # SCORES WHITE PLAYER
+        self.score_white = Label(x=170, y=label_y, text=str(self.data['score'][0]), color=label_text_color,
+                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
+        self.white_label_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.white_label_stone.scale = LITTLE_STONE_SIZE
+        self.white_label_stone.set_position(150, label_y + self.white_label_stone.height/4)
+
+        # CURRENT PLAYER STONE
+        self.player_color = Label(x=550, y=label_y, text="Your color: ", color=label_text_color,
+            font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
+
+        # INITIAL PLAYER STONE
+        self.current_player_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+        self.current_player_stone.scale = LITTLE_STONE_SIZE
+        self.current_player_stone.set_position(660, label_y + self.current_player_stone.height/4)
+
+        # Game Buttons  
+        # Button that can be pressed to pass on current round
+        self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)
+        
+        # New-Game Button
+        self.button_newgame = Button(pos=(480,40), text='New Game')
+
+    def update(self, *args):
+        """This function does all the calculations when the data gets updated.
+            For other games that require permanent simulations you would add
+            the following line of code at the end of __init__():
+            pyglet.clock.schedule_interval(self.update, 1/30)
+        """
+        # Game Information Updates
+        # Scores of each player
+        self.update_stones()
+        self.update_territories()
+        self.update_scores()
+        self.update_current_player()
+            
+        # If the new size in the data is different than the current size
+        if self.data['size'] != self.grid.size:
+            self.init_display()
+    
+    def update_stones(self):
+        # Display the stones on the regular batch
+        self.batch_stones = self.batch
+        self.stone_sprites = []
+
+        # Center black and white stones
+        def center_image(image):
+            """Sets an image's anchor point to its center"""
+            image.anchor_x = image.width/2
+            image.anchor_y = image.height/2
+            
+        center_image(self.image_black_stone)
+        center_image(self.image_white_stone)
+
+        # Place all stones on the grid
+
+        # Scale stone images
+        scaling = self.grid.field_width / self.image_black_stone.width
+
+        # Limit max size of stones
+        if scaling > MAX_STONE_SCALING:
+            scaling = MAX_STONE_SCALING
+
+        # Iterate trough all data stones and place the corresponding black or
+        # white stone on the grid
+        for i in range(0, self.data['size']):
+            for j in range(0, self.data['size']):
+                if self.data['stones'][j][i] != None:
+                    # Get x and y grid coordinates
+                    x_coord, y_coord = self.grid.get_coords(i, j)
+
+                    # Get the stone color to place
+                    stone_color = self.image_black_stone if self.data['stones'][j][i] == BLACK else None
+                    stone_color = self.image_white_stone if self.data['stones'][j][i] == WHITE else stone_color
+
+                    # Place the stone on the grid
+                    if stone_color:
+                        _s = Sprite(stone_color,
+                                    batch=self.batch_stones,
+                                    group=self.grp_stones,
+                                    x=x_coord,
+                                    y=y_coord)
+                        _s.scale = scaling
+                        self.stone_sprites.append(_s)   
+    
+    def update_territories(self):
+        # Display the territory an the regular batch
+        # Display the stones on the regular batch
+        self.batch_territory = self.batch
+        
+        rad = 5
+        
+        # Iterate trough all territory indicators and place the corresponding
+        # black or white circle on the grid or above stones
+        for i in range(0, self.data['size']):
+            for j in range(0, self.data['size']):
+                if self.data['territory'][j][i] != None:
+                    x_coord, y_coord = self.grid.get_coords(i, j)
+                    if self.data['territory'][j][i] == BLACK:
+                        Circle(x_coord,
+                               y_coord,
+                               color=BLACK_TERRITORY,
+                               r=rad,
+                               batch=self.batch_territory,
+                               group=self.grp_territory)
+                    elif self.data['territory'][j][i] == WHITE:
+                        Circle(x_coord,
+                               y_coord,
+                               color=WHITE_TERRITORY,
+                               r=rad,
+                               batch=self.batch_territory,
+                               group=self.grp_territory)
+
+    def update_scores(self):
+        """Update scores for BLACK and WHITE."""
+        self.score_black.text = str(self.data['score'][1])
+        self.score_white.text = str(self.data['score'][0])
+
+    def update_current_player(self):
+        """Update stone of current player."""
+        self.current_player_stone.delete()
+        # If its the BLACK players turn
+        if self.data['color']:
+            self.current_player_stone = Sprite(self.image_black_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+            self.current_player_stone.scale = LITTLE_STONE_SIZE
+            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
+        # If its the WHITE players turn
+        else:
+            self.current_player_stone = Sprite(self.image_white_stone,
+                           batch=self.batch, group=self.grp_label,
+                           x=0, y=0)
+            self.current_player_stone.scale = LITTLE_STONE_SIZE
+            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
+
 
     def on_draw(self):
         """Draw the interface.
@@ -104,12 +327,10 @@ class Window(pyglet.window.Window):
             self.controller.passing()
 
         # Grid position clicked (only if above buttons)
-        elif button == pyglet.window.mouse.LEFT and mousey > 40:
+        elif button == pyglet.window.mouse.LEFT and mousey > 60:
             # Place a stone at clicked position
             pos = self.grid.get_indices(mousex, mousey)
             if pos != None:
-                # TODO: remove print statement once everything is integrated
-                # print('Left-click at field x={}, y={}'.format(pos[0], pos[1]))
                 self.controller.play(pos)
 
     def on_key_press(self, symbol, modifiers):
@@ -131,226 +352,16 @@ class Window(pyglet.window.Window):
         """
         pass
     
-    def update(self, *args):
-        """This function does all the calculations when the data gets updated.
-            For other games that require permanent simulations you would add
-            the following line of code at the end of __init__():
-            pyglet.clock.schedule_interval(self.update, 1/30)
-        """
-        # Game Information Updates
-        # Scores of each player
-        self.update_scores()
-        self.update_current_player()
-        self.update_stones()
-        self.update_stones_on_grid()
-        self.init_territory()
-            
-        # Approach 1: works
-        # If the new size in the data is different than the current size
-        if self.data['size'] != self.grid.size:
-            self.init_display()
-    
-        # Approach 2: does not work
-        #self.update_current_player()
-        #self.update_stones_on_grid()
-    
-    def update_stones(self):
-        # Display the stones on the regular batch
-        self.batch_stones = self.batch
-        self.stone_sprites = []
-
-        # Center black and white stones
-        def center_image(image):
-            """Sets an image's anchor point to its center"""
-            image.anchor_x = image.width/2
-            image.anchor_y = image.height/2
-            
-        center_image(self.image_black_stone)
-        center_image(self.image_white_stone)
-
-    def init_display(self):
-        """Gather all graphical elements together and draw them simutaneously.
-        """
-        # Creating a batch to display all graphics
-        self.batch = pyglet.graphics.Batch()
-        
-        # Graphic groups (groups of lower index get drawn first)
-        self.grp_back = pyglet.graphics.OrderedGroup(0)
-        self.grp_grid = pyglet.graphics.OrderedGroup(1)
-        self.grp_label = pyglet.graphics.OrderedGroup(2)
-        self.grp_stones = pyglet.graphics.OrderedGroup(3)
-        self.grp_territory = pyglet.graphics.OrderedGroup(4)
-
-        # Initially load all graphic groups.
-        self.init_back()
-        self.init_grid()
-        self.init_label()
-        self.init_territory()
-        
-        # Center black and white stones
-        def center_image(image):
-            """Sets an image's anchor point to its center"""
-            image.anchor_x = image.width/2
-            image.anchor_y = image.height/2
-            
-        center_image(self.image_black_stone)
-        center_image(self.image_white_stone)
-
-    def init_back(self):
-        """Load the background."""
-        # Display background image
-        # self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
-        
-        # Alternative approach to display image
-        self.graphical_obj = []
-        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
-
-    def init_grid(self):
-        """Load the grid."""
-        # Display grid
-        self.grid = Grid(x=self.width/2,
-                         y=self.height/2,
-                         width=self.width*MAX_GRID_SIZE,
-                         height=self.height*MAX_GRID_SIZE,
-                         batch=self.batch,
-                         group=self.grp_grid,
-                         n=self.data['size'])
-
-    def init_label(self):
-        """Load all labels and buttons"""
-        # Game Information Display
-        label_y = 670                 # y position of scores and next turn labels
-        label_font_size = 12
-        label_text_color = (0, 0, 0, 255)
-        
-        # Controller-Info Panel
-        # The Text of this label is directly changed inside the controller
-        self.info = Label(x=10, y=10, text="Let's start!", color=label_text_color,
-                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
-
-        # Score-Label
-        Label(x=10, y=label_y, text='Score:', color=label_text_color,
-                          font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
-
-        # SCORES BLACK PLAYER
-        self.score_black = Label(x=100, y=label_y, text=str(self.data['score'][1]), color=label_text_color,
-                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
-        self.black_label_stone = Sprite(self.image_black_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.black_label_stone.scale = LITTLE_STONE_SIZE
-        self.black_label_stone.set_position(65, label_y - self.black_label_stone.height/4)
-
-        # SCORES WHITE PLAYER
-        self.score_white = Label(x=170, y=label_y, text=str(self.data['score'][0]), color=label_text_color,
-                          font_size=label_font_size, batch=self.batch, group=self.grp_label)
-        self.white_label_stone = Sprite(self.image_white_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.white_label_stone.scale = LITTLE_STONE_SIZE
-        self.white_label_stone.set_position(135, label_y - self.white_label_stone.height/4)
-
-        # CURRENT PLAYER STONE
-        self.player_color = Label(x=550, y=label_y, text="Your color: ", color=label_text_color,
-            font_size=label_font_size, bold=True, batch=self.batch, group=self.grp_label)
-
-        # INITIAL PLAYER STONE
-        self.current_player_stone = Sprite(self.image_black_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-        self.current_player_stone.scale = LITTLE_STONE_SIZE
-        self.current_player_stone.set_position(660, label_y - self.current_player_stone.height/4) 
-
-        # Game Buttons  
-        # Button that can be pressed to pass on current round
-        self.button_pass = Button(pos=(600,40), text='Pass', batch=self.batch)
-        
-        # New-Game Button
-        self.button_newgame = Button(pos=(480,40), text='New Game')
-        
-    def init_territory(self):
-        """ """
-        # TODO: create own function to update terretory
-        rad = 5
-        
-        # Iterate trough all territory indicators and place the corresponding
-        # black or white circle on the grid or above stones
-        for i in range(0, self.data['size']):
-            for j in range(0, self.data['size']):
-                if self.data['territory'][j][i] != None:
-                    x_coord, y_coord = self.grid.get_coords(i, j)
-                    if self.data['territory'][j][i] == BLACK:
-                        Circle(x_coord,
-                               y_coord,
-                               color=BLACK_TERRITORY,
-                               r=rad,
-                               batch=self.batch_stones,
-                               group=self.grp_territory)
-                    elif self.data['territory'][j][i] == WHITE:
-                        Circle(x_coord,
-                               y_coord,
-                               color=WHITE_TERRITORY,
-                               r=rad,
-                               batch=self.batch_stones,
-                               group=self.grp_territory)
-
-    def update_stones_on_grid(self):
-        """Place all stones on the grid"""
-        # Scale stone images
-        scaling = self.grid.field_width / self.image_black_stone.width
-
-        # Limit max size of stones
-        if scaling > MAX_STONE_SCALING:
-            scaling = MAX_STONE_SCALING
-
-        # Iterate trough all data stones and place the corresponding black or
-        # white stone on the grid
-        for i in range(0, self.data['size']):
-            for j in range(0, self.data['size']):
-                if self.data['stones'][j][i] != None:
-                    # Get x and y grid coordinates
-                    x_coord, y_coord = self.grid.get_coords(i, j)
-
-                    # Get the stone color to place
-                    stone_color = self.image_black_stone if self.data['stones'][j][i] == BLACK else None
-                    stone_color = self.image_white_stone if self.data['stones'][j][i] == WHITE else stone_color
-
-                    # Place the stone on the grid
-                    if stone_color:
-                        _s = Sprite(stone_color,
-                                    batch=self.batch_stones,
-                                    group=self.grp_stones,
-                                    x=x_coord,
-                                    y=y_coord)
-                        _s.scale = scaling
-                        self.stone_sprites.append(_s)
-
-    def update_scores(self):
-        """Update scores for BLACK and WHITE."""
-        self.score_black.text = str(self.data['score'][1])
-        self.score_white.text = str(self.data['score'][0])
-
-    def update_current_player(self):
-        """Update stone of current player."""
-        self.current_player_stone.delete()
-        # If its the BLACK players turn
-        if self.data['color']:
-            self.current_player_stone = Sprite(self.image_black_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-            self.current_player_stone.scale = LITTLE_STONE_SIZE
-            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
-        # If its the WHITE players turn
-        else:
-            self.current_player_stone = Sprite(self.image_white_stone,
-                           batch=self.batch, group=self.grp_label,
-                           x=0, y=0)
-            self.current_player_stone.scale = LITTLE_STONE_SIZE
-            self.current_player_stone.set_position(660, 670 + self.current_player_stone.height/4)
-
     def receive_data(self, data):
         """Receive data from the controller and update view"""
         self.data.update(data)
+        self.update()
+
+    def new_game(self, data):
+        """Receive data from the controller and start a new game"""
+        # Initialize the display
+        self.data.update(data)
+        self.init_display()
         self.update()
          
 # main program
