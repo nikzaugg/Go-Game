@@ -65,17 +65,21 @@ class Model(object):
         if self.game_over:
             return False
         
-        # both players pass => game over
+        # passed => game over
         if self.has_passed:
             self.game_over = True
             return True
-        
-        # invert the turn & set passed to true
-        self.turn = WHITE if (self.turn == BLACK) else BLACK     
-        self.has_passed = True
-        self.blocked_field = None
 
-        return True
+        else:
+            # Invert the turn => next color's turn
+            if self.turn == BLACK:
+                self.turn = WHITE
+            else:
+                self.turn = BLACK
+            
+            self.has_passed = True
+            self.blocked_field = None
+            return True
 
     def _stones(self):
         """Returns a nested list (same shape as board) containing the colors of each stone.
@@ -171,18 +175,12 @@ class Model(object):
         return data
 
     def place_stone(self, x, y):
-        """Attempts to place a new stone. 
-           Validates the move and executes the respective action. 
+        """Validates a move and place the new stone.
 
         Arguments
             x (int): x - coordinate of the new stone
             y (int): y - coordinate of the new stone
 
-        Variables changed by this function
-            self.has_passed
-            self.blocked_field
-            self.turn
-            self.board - adds / removes / kills stones
         """
         # check if the game is finished
         if self.game_over:
@@ -199,48 +197,47 @@ class Model(object):
         # create new group with the given coordinates
         new_group = Group(stones=[(x, y)], color=self.turn)
 
-        # create two lists to remember the groups to remove / kill
         groups_to_remove = []
         groups_to_kill = []
 
-        # set the move validity initially to False
+        # set the move initially to False
         is_valid = False
 
-        # All direct neighbors of (x, y)
+        # Look at all direct neighbors 
         for (u, v) in [(x-1, y), (x+1, y), (x, y-1), (x, y+1)]:
-
-            # Check if the neighbor is on the board
+            # Check if the neighbor is actually on the board
             if u < 0 or v < 0 or u >= self.size or v >= self.size:
                 continue
             
             # Add the neighbor to the border of the new group
             new_group.border.add((u, v))
 
+            # Check if the element at position neighbor is None
             other_group = self.board[v][u]
 
-            # check if neighbor is None
             if other_group is None:
                 is_valid = True
-                continue
+            else:
+                # check the colors
+                if new_group.color == other_group.color:
+                    # merge the two groups
+                    # remember to delete the old one
+                    new_group = new_group + other_group
+                    groups_to_remove.append(other_group)
+                else:
+                    # check that there is only one free adjacent field to other_group
+                    if self._liberties(other_group) == 1:
+                        is_valid = True
 
-            # same color
-            if new_group.color == other_group.color:
-                # merge the two groups & remember to delete the old one
-                new_group = new_group + other_group
-                groups_to_remove.append(other_group)
-
-            # different color
-            # check that there is only one free adjacent field to other_group
-            elif self._liberties(other_group) == 1:
-                is_valid = True
-                
-                # remember to kill the other_group
-                if other_group not in groups_to_kill: 
-                    groups_to_kill.append(other_group)
+                        # remember to kill the group
+                        if other_group not in groups_to_kill: 
+                            groups_to_kill.append(other_group)
 
         # new_group must have at least one free adjacent field
-        if self._liberties(new_group) >= 1:
+        if self._liberties(new_group) == 1:
             is_valid = True
+
+        print('Valid move:', is_valid)
 
         # check if the move is valid
         if is_valid:
@@ -257,8 +254,8 @@ class Model(object):
 
         # ko-rule: block the field where the stone has just been placed
         if new_group.size == 1 and len(groups_to_kill) == 1 and groups_to_kill[0].size == 1:
-            for (x, y) in groups_to_kill[0].stones:
-                self.blocked_field = (x, y)
+            for coordinates in groups_to_kill[0].stones:
+                self.blocked_field = coordinates
         else:
             self.blocked_field = None
         
@@ -359,8 +356,9 @@ class Model(object):
             area (list) - empty fields
             count (list) - number of adjacents stones to [Black, White]
         """
-        
-        # TODO: BUG: Fix that stones are counted multiple times if more than one empty field is adjacent to them
+
+        # TODO: Apparently there is a bug in this code. According to the instructions.
+        # TODO: Fix that stones are counted multiple times if more than one empty field is adjacent to them
 
         # initialize a new empty list
         if area is None:
@@ -389,7 +387,6 @@ class Model(object):
                     self._find_empty(u, v, area=area, count=count)
                 else:
                     count[self.board[v][u].color] += 1
-                    print("Stone: ", self.board[v][u], "Color: ", self.board[v][u].color, "Stones: ", self.board[v][u].stones, "Border: ", self.board[v][u].border)
 
         return area, count
 
@@ -414,7 +411,7 @@ class Model(object):
 
         # claim an empty field
         if self.board[y][x] is None:
-            # cycle through the colours depending on how the field is currently marked
+            # Cycle through the colours depending on how the field is currently marked
             col_dict = {None:BLACK, BLACK:WHITE, WHITE:None}
             color = col_dict[self.territory[y][x]]
 
@@ -450,13 +447,13 @@ class Model(object):
         # TODO: Update this algorithm to claim fields that are completely surrounded by one color (recognize prisoners and dead groups).
 
         # Keep track of the checked fields
-        covered_area = list()
+        area = list()
 
         for y in range(self.size):
             for x in range(self.size):
 
                 # skip the coordinates if they have already been checked
-                if (x, y) in covered_area:
+                if (x, y) in area:
                     continue
 
                 # only check empty fields
@@ -464,14 +461,12 @@ class Model(object):
 
                     # Find all adjacent empty fields
                     # Count contains the number of adjacent stones of each color.
-                    area, count = self._find_empty(x, y, area=covered_area)
-                    covered_area += area
+                    _a, count = self._find_empty(x, y, area=area)
+                    area += _a
 
-                    # claim the territory if black has no adjacent stones
+                    # Claim the territory if one color has no stones adjacent
                     if count[BLACK] == 0 and count[WHITE] > 0:
                         self._claim_empty(x, y, WHITE)
-
-                    # claim the territory if white has no adjacent stones
                     elif count[WHITE] == 0 and count[BLACK] > 0:
                         self._claim_empty(x, y, BLACK)
 

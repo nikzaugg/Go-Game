@@ -5,3 +5,8 @@ application with graphical user interface. For that, we will implement
 a Japanese board game called Go. Although Go has quite easy rules and
 graphics, it shows you all the key parts that are used for more complex
 graphics, such as animated games or simulations.
+
+`pip install pyglet`
+
+To start a new game:
+`python go.py`
