@@ -1,3 +1,10 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+# Author: Alex Scheitlin
+
+# Starting screen for an implementation of the Go game using the MVC architecture
+
 from Tkinter import *
 from controller import Controller
 

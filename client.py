@@ -1,6 +1,10 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Author: Alex Scheitlin & Nik Zaugg
+
+# View part of the MVC architecture for an implementation of the Go game
+
 import pyglet
 from pyglet.sprite import Sprite
 from pyglet.text import Label
@@ -8,7 +12,6 @@ from graphics import Grid
 from graphics import Button
 from graphics import Circle
 import controller
-
 
 # constants
 BLACK = True
@@ -27,7 +30,7 @@ BLACK_STONE = pyglet.resource.image('images/BlackStone.png')
 WHITE_STONE = pyglet.resource.image('images/WhiteStone.png')
 
 class Window(pyglet.window.Window):
-    """Render the game data within a pyglet window."""
+    """This class renders the game data within a pyglet window."""
 
     def __init__(self, my_controller, size):
         super(Window, self).__init__(700, 700, fullscreen=False, caption='')
@@ -59,10 +62,21 @@ class Window(pyglet.window.Window):
         self.init_display()
 
     def init_resources(self):
-        """Center black and whtie stones for proper visualization"""
+        """Center black and whtie stones for proper visualization
 
+        Attributes updated by this function:
+            self.image_black_stone
+            self.image_white_stone
+        """
         def center_image(image):
-            """Sets an image's anchor point to its center"""
+            """Set an image's anchor point to its center
+
+            Arguments:
+                image (pyglet.resource.image) - image to center
+
+            Attributes updated by this function:
+                image
+            """
             image.anchor_x = image.width/2
             image.anchor_y = image.height/2
             
@@ -71,6 +85,25 @@ class Window(pyglet.window.Window):
 
     def init_display(self):
         """Gather all graphical elements together and draw them simutaneously.
+
+            Attributes updated by this function:
+                self.batch
+                self.grp_back
+                self.grp_grid
+                self.grp_label
+                self.grp_stones
+                self.grp_territory
+                self.background
+                self.grid
+                self.info
+                self.score_black
+                self.black_label_stone
+                self.score_white
+                self.white_label_stone
+                self.player_color
+                self.current_player_stone
+                self.button_pass
+                self.button_newgame
         """
         # Creating a batch to display all graphics
         self.batch = pyglet.graphics.Batch()
@@ -88,16 +121,20 @@ class Window(pyglet.window.Window):
         self.init_label()
 
     def init_back(self):
-        """Load the background."""
+        """Load the background.
+
+            Attributes updated by this function:
+                self.background
+        """
         # Display background image
-        # self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
-        
-        # Alternative approach to display image
-        self.graphical_obj = []
-        self.graphical_obj.append(Sprite(self.image_background, batch=self.batch, group=self.grp_back))
+        self.background = Sprite(self.image_background, batch=self.batch, group=self.grp_back)
 
     def init_grid(self):
-        """Load the grid."""
+        """Load the grid.
+
+            Attributes updated by this function:
+                self.grid
+        """
         # Display grid
         self.grid = Grid(x=self.width/2,
                          y=self.height/2,
@@ -108,7 +145,19 @@ class Window(pyglet.window.Window):
                          n=self.data['size'])
 
     def init_label(self):
-        """Load all labels and buttons"""
+        """Load all labels and buttons.
+
+            Attributes updated by this function:
+                self.info
+                self.score_black
+                self.black_label_stone
+                self.score_white
+                self.white_label_stone
+                self.player_color
+                self.current_player_stone
+                self.button_pass
+                self.button_newgame
+        """
         # Game Information Display
         label_y = 670                 # y position of scores and next turn labels
         label_font_size = 12
@@ -164,6 +213,16 @@ class Window(pyglet.window.Window):
             For other games that require permanent simulations you would add
             the following line of code at the end of __init__():
             pyglet.clock.schedule_interval(self.update, 1/30)
+
+            Attributes updated by this function:
+                self.batch_stones
+                self.stone_sprites
+                self.image_black_stone
+                self.image_white_stone
+                self.batch_territory
+                self.score_black
+                self.score_white
+                self.current_player_stone
         """
         # Game Information Updates
         # Scores of each player
@@ -177,6 +236,14 @@ class Window(pyglet.window.Window):
             self.init_display()
     
     def update_stones(self):
+        """Update the black and white stones on the game board.
+
+            Attributes updated by this function:
+                self.batch_stones
+                self.stone_sprites
+                self.image_black_stone
+                self.image_white_stone
+        """
         # Display the stones on the regular batch
         self.batch_stones = self.batch
         self.stone_sprites = []
@@ -222,6 +289,11 @@ class Window(pyglet.window.Window):
                         self.stone_sprites.append(_s)   
     
     def update_territories(self):
+        """Update the black and white territories on the board.
+
+            Attributes updated by this function:
+                self.batch_territory
+        """
         # Display the territory an the regular batch
         # Display the stones on the regular batch
         self.batch_territory = self.batch
@@ -250,13 +322,24 @@ class Window(pyglet.window.Window):
                                group=self.grp_territory)
 
     def update_scores(self):
-        """Update scores for BLACK and WHITE."""
+        """Update scores for BLACK and WHITE.
+        
+            Attributes updated by this function:
+                self.score_black
+                self.score_white
+        """
         self.score_black.text = str(self.data['score'][1])
         self.score_white.text = str(self.data['score'][0])
 
     def update_current_player(self):
-        """Update stone of current player."""
+        """Update stone of current player.
+        
+            Attributes updated by this function:
+                self.current_player_stone
+        """
+        # Remve the last current player stone
         self.current_player_stone.delete()
+
         # If its the BLACK players turn
         if self.data['color']:
             self.current_player_stone = Sprite(self.image_black_stone,
@@ -275,9 +358,11 @@ class Window(pyglet.window.Window):
 
     def on_draw(self):
         """Draw the interface.
-       
-        This function should only draw the graphics without
-        doing any computations.
+        
+            Attributes updated by this function:
+                self
+                self.batch
+                self.button_newgame
         """
         # Clear out old graphics
         self.clear()
@@ -353,12 +438,20 @@ class Window(pyglet.window.Window):
         pass
     
     def receive_data(self, data):
-        """Receive data from the controller and update view"""
+        """Receive data from the controller and update view.
+        
+            Attributes updated by this function:
+                self.data
+        """
         self.data.update(data)
         self.update()
 
     def new_game(self, data):
-        """Receive data from the controller and start a new game"""
+        """Receive data from the controller and start a new game.
+        
+            Attributes updated by this function:
+                self.data
+        """
         # Initialize the display
         self.data.update(data)
         self.init_display()

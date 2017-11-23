@@ -1,6 +1,10 @@
 #!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
+# Author: Moritz Eck
+
+# Model part of the MVC architecture for an implementation of the Go game
+
 from template import Group
 
 # constants
