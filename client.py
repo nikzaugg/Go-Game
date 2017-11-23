@@ -14,8 +14,8 @@ import controller
 BLACK = True
 WHITE = False
 
-BLACK_TERRITORY = (255, 255, 255, 255)
-WHITE_TERRITORY = (0, 0, 0, 255)
+BLACK_TERRITORY = (0, 0, 0, 255)
+WHITE_TERRITORY = (255, 255, 255, 255)
 
 MAX_STONE_SCALING = 0.6     # 1 is original size
 MAX_GRID_SIZE = 0.7         # 1 is full size of window
