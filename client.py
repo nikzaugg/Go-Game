@@ -103,8 +103,8 @@ class Window(pyglet.window.Window):
         if (mousex, mousey) in self.button_pass:
             self.controller.passing()
 
-        # Grid position clicked
-        if button == pyglet.window.mouse.LEFT:
+        # Grid position clicked (only if above buttons)
+        elif button == pyglet.window.mouse.LEFT and mousey > 40:
             # Place a stone at clicked position
             pos = self.grid.get_indices(mousex, mousey)
             if pos != None:
