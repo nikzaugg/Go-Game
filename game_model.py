@@ -239,7 +239,7 @@ class Model(object):
                     groups_to_kill.append(other_group)
 
         # new_group must have at least one free adjacent field
-        if self._liberties(new_group) == 1:
+        if self._liberties(new_group) >= 1:
             is_valid = True
 
         # check if the move is valid
