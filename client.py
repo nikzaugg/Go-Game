@@ -62,7 +62,7 @@ class Window(pyglet.window.Window):
         self.init_display()
 
     def init_resources(self):
-        """Center black and whtie stones for proper visualization
+        """Center black and white stones for proper visualization
 
         Attributes updated by this function:
             self.image_black_stone
