@@ -12,7 +12,7 @@ import client
 class Controller(object):
     """ Controller class which enables communication between the client and the model"""
 
-    def __init__(self, grid_size):
+    def __init__(self, grid_size, player_1_name, player_2_name):
         """Initialize the controller/game and grid size and pass initial data from the model to the client
 
         Arguments
@@ -25,9 +25,14 @@ class Controller(object):
         """
         # Initialize the controller and start communicating between the view and model
         self.n = int(grid_size)
+        self.player_1 = player_1_name
+        self.player_2 = player_2_name
         self.model = Model(self.n)
         self.window = client.Window(self, self.n)
         self.window.receive_data(self.model.get_data())
+
+        # Display the start message and start the game.
+        self.window.info.text = "Let's start, " + self.player_1 + "!"
         pyglet.app.run()
     
 
@@ -50,12 +55,16 @@ class Controller(object):
             self.model
             self.window.info.text
         """
+
+        # Get the name of the current player
+        player_name = self.player_1 if self.model.get_data()['color'] else self.player_2
+
         # If valid move
         if(self.model.place_stone(pos[0], pos[1])):
-            self.window.info.text = "Nice Move!"
+            self.window.info.text = 'Nice Move ' + player_name + '!'
         # If invalid move
         else:
-            self.window.info.text = 'Invalid move!'
+            self.window.info.text = 'Invalid move ' + player_name + '!'
         
         self._update_window()
     
@@ -104,4 +113,4 @@ class Controller(object):
         """
         self.model.__init__(self.n)
         self.window.new_game(self.model.get_data())
-        self.window.info.text = "New game, let's start!"
+        self.window.info.text = "New game, let's start, " + self.player_1 + "!"
