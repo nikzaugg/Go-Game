@@ -85,8 +85,9 @@ class Model(object):
         """Returns a nested list (same shape as board) containing the colors of each stone.
 
         Returns:
-            list (boolean) : 
+            list (boolean) : multidimensional list containing the colors of the stones on the board.
         """
+        # initialize a new empty list with the size of the playing board
         colors = [[None for i in range(self.size)] for j in range(self.size)]
 
         for j in range(0, self.size):
@@ -102,7 +103,7 @@ class Model(object):
         """Adds a group of stones to the game
 
         Arguments:
-            grp (Group): The group that should be removed
+            grp (Group): The group that shall be added
         
         Attributes updated by this function:
             self.board
@@ -114,7 +115,7 @@ class Model(object):
         """Removes a group of stones from the game
 
         Arguments:
-            grp (Group): The group that should be removed
+            grp (Group): The group that shall be removed
         
         Attributes updated by this function:
             self.board
@@ -127,21 +128,24 @@ class Model(object):
         counter of captured stones.
 
         Arguments:
-            grp (Group): The group that should be removed
+            grp (Group): The group that has been killed - needs to be removed
 
         Attributes updated by this function:
             self.board
             self.captured
             self.group
         """
+        # increase the caputured counter of the opposite color by the nr. of stones in the grp 
         self.captured[not grp.color] += grp.size
+
+        # remove the group
         self._remove(grp)
 
     def _liberties(self, grp):
         """Counts the number of empty fields adjacent to the group.
 
         Arguments:
-            grp (Group): A group of stones.
+            grp (Group): a group of stones.
 
         Returns:
             (int): nr. of liberties of that group
@@ -154,14 +158,13 @@ class Model(object):
         Returns:
             list (int): containing the scores of each player
         """
-        return [self.score[0] + self.captured[0], 
-                self.score[1] + self.captured[1]]
+        return [self.score[0] + self.captured[0], self.score[1] + self.captured[1]]
 
     def get_data(self):
-        """Returns the data object to the controller. 
+        """Returns the data object containing all relevant information to the controller.
 
         Returns:
-            data (dictionary) - data object for the controller
+            data (dictionary): data object for the controller
         """
         data = {
             'size'      : self.size,
@@ -176,7 +179,7 @@ class Model(object):
 
     def place_stone(self, x, y):
         """Attempts to place a new stone. 
-           Validates the move and executes the respective action. 
+           Validates the move and if valid, executes the respective action. 
 
         Arguments
             x (int): x - coordinate of the new stone
@@ -207,6 +210,10 @@ class Model(object):
         groups_to_remove = []
         groups_to_kill = []
 
+        ######################################
+        # Move Validation
+        ######################################
+
         # set the move validity initially to False
         is_valid = False
 
@@ -221,7 +228,7 @@ class Model(object):
             new_group.border.add((u, v))
 
             other_group = self.board[v][u]
-
+            
             # check if neighbor is None
             if other_group is None:
                 is_valid = True
@@ -229,11 +236,13 @@ class Model(object):
 
             # same color
             if new_group.color == other_group.color:
-                # merge the two groups & remember to delete the old one
+                # merge the two groups
                 new_group = new_group + other_group
+
+                # remember to delte the old grp (other_group)
                 groups_to_remove.append(other_group)
 
-            # different color
+            # groups have different colors
             # check that there is only one free adjacent field to other_group
             elif self._liberties(other_group) == 1:
                 is_valid = True
@@ -246,7 +255,11 @@ class Model(object):
         if self._liberties(new_group) >= 1:
             is_valid = True
 
-        # check if the move is valid
+        ######################################
+        # Move Execution (only if valid)
+        ######################################
+
+        # the move is valid
         if is_valid:
             # remove groups
             for grp in groups_to_remove:
@@ -258,14 +271,29 @@ class Model(object):
 
             # add the new group
             self._add(new_group)
+        
+        # the move is invalid
+        else:
+            return False
 
+        ######################################
         # ko-rule: block the field where the stone has just been placed
+        ######################################
+
+        # 3 conditions for the ko-rule to apply
+        # 1. the new group has only one stone
+        # 2. only one group has been killed
+        # 3. the killed group has only had one stone
         if new_group.size == 1 and len(groups_to_kill) == 1 and groups_to_kill[0].size == 1:
             for (x, y) in groups_to_kill[0].stones:
                 self.blocked_field = (x, y)
         else:
             self.blocked_field = None
         
+        ######################################
+        # Turn End Actions: Change the current player
+        ######################################
+
         # switch the color (turn)
         self.turn = WHITE if (self.turn == BLACK) else BLACK
         self.has_passed = False
@@ -273,7 +301,10 @@ class Model(object):
         return True
 
     def _compute_score(self):
-        """Counts the number of marked fields.
+        """Counts the number of marked fields and updates the score.
+
+        Variables changed by this function 
+            self.score
         """
 
         # reset the scores to zero
@@ -301,10 +332,13 @@ class Model(object):
         """ Claims an empty field including all adjacent (neighboring) empty fields.
 
         Arguments
-            x (int) - x-coordinate
-            y (int) - y-coordinate
-            color (boolean) - color of player the empty field will receive
-            area (list) - visited coordinates / fields
+            x (int): x-coordinate
+            y (int): y-coordinate
+            color (boolean): color the empty field will receive
+            area (list):     visited coordinates / fields
+        
+        Variables changed by this function
+            self.territory
         """
 
         # initialize a new empty list
@@ -312,11 +346,14 @@ class Model(object):
             area = list()
 
         # recursion stopping criteria
+        # position is not empty or has already been traversed
         if self.board[y][x] is not None or (x, y) in area:
             return
 
         # claim the empty field
         self.territory[y][x] = color
+
+        # remembering the current location 
         area.append((x, y))
 
         # recursively checking all neighbors
@@ -338,6 +375,9 @@ class Model(object):
             y (int) - y-coordinate
             color (boolean) - color of player the empty field will receive
             area (list) - visited coordinates / fields
+
+        Variables changed by this function
+            self.territory
         """
 
         # initialize a new empty list
@@ -347,7 +387,10 @@ class Model(object):
         # claiming each stone in the group at coordinates (x, y)
         for (u, v) in self.board[y][x].stones:
             if (u, v) not in area:
+                # remembering the current location
                 area.append((u, v))
+
+                # claiming the position
                 self.territory[v][u] = color
         
         # claiming each empty field in the adjacent empty fields
@@ -360,8 +403,8 @@ class Model(object):
         counts the adjacent stones of each color.
 
         Returns:
-            area (list) - empty fields
-            count (list) - number of adjacents stones to [Black, White]
+            area (list):    empty fields [Black, White]
+            count (list):   number of adjacents stones to [Black, White]
         """
         
         # TODO: BUG: Fix that stones are counted multiple times if more than one empty field is adjacent to them
@@ -374,10 +417,12 @@ class Model(object):
         if count is None:
             count = [0, 0]
 
-        #  recursion stopping criteria
+        # recursion stopping criteria
+        # position is not empty or has already been traversed
         if self.board[y][x] is not None or (x, y) in area:
             return area, count
 
+        # add the current position to the traversed
         area.append((x, y))
 
         # recursively checking all neighbors
@@ -393,19 +438,18 @@ class Model(object):
                     self._find_empty(u, v, area=area, count=count)
                 else:
                     count[self.board[v][u].color] += 1
-                    print("Stone: ", self.board[v][u], "Color: ", self.board[v][u].color, "Stones: ", self.board[v][u].stones, "Border: ", self.board[v][u].border)
 
         return area, count
 
     def mark_territory(self, x, y):
-        """Function that can be evoked by user to claim territory for
-        one player.
+        """Function that can be evoked by user to claim territory for one player.
         For empty fields it will also mark all adjacent empty fields,
         for fields that contain a stone it will mark the entire stone
         group and all adjacent empty spaces.
 
         Arguments:
-            x, y (int): coordinates of the field
+            x (int): x-coordinate on the board
+            y (int): y-coordinate on the board
 
         Attributes updated by this function:
             self.score
@@ -419,7 +463,10 @@ class Model(object):
         # claim an empty field
         if self.board[y][x] is None:
             # cycle through the colours depending on how the field is currently marked
+            # None => Black => White => None
             col_dict = {None:BLACK, BLACK:WHITE, WHITE:None}
+
+            # change the color
             color = col_dict[self.territory[y][x]]
 
             # recursively claim the fields
